@@ -139,7 +139,8 @@ class DatasetGenerator:
             hop_size=self.dataset_param.hop_size
         )
 
-    def gen_dataset(self, metadata_file):
+    def gen_dataset(self):
+        metadata_file = 'metadata.json'
         meta = {}
         meta.update(
             self.__gen_dataset(

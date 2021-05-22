@@ -53,9 +53,9 @@ def load_config(config_path, version):
 
 def create_data(config_list):
     """performs .wav data creation process"""
-    from gen_data import Generator
-    gen_data = Generator(config_list)
-    gen_data.generate()
+    from gen_data import DatasetGenerator
+    gen_data = DatasetGenerator(config_list.dataset_config)
+    gen_data.gen_dataset()
 
 
 def extract_feature(config_list):
