@@ -1,12 +1,13 @@
-import os
-import numpy as np
-import random
-import librosa
-import tqdm
-import shutil
-from audioread import NoBackendError
-import multiprocessing as mp
 import json
+import multiprocessing as mp
+import os
+import random
+import shutil
+
+import librosa
+import numpy as np
+import tqdm
+from audioread import NoBackendError
 from scipy.io.wavfile import write
 
 

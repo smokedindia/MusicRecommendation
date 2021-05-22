@@ -1,13 +1,14 @@
-from pydataclasses import DataClass
 import os
+import shutil
 
 import torch
 import torch.nn as nn
 import tqdm
+from pydataclasses import DataClass
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+
 from dataset import MusicRecommendationDataset, ToTensor
-import shutil
 
 
 class TrainParams(DataClass):

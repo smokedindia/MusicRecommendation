@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+
 from pydataclasses import DataClass
 
 DATASET_CONFIG_FILE = 'dataset_config.json'
