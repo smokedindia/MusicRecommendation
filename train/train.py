@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from dataset import MusicRecommendationDataset, ToTensor
+from model import MusicRecommendationModel
 
 
 class TrainParams(DataClass):
