@@ -22,9 +22,9 @@ class TrainParams(DataClass):
 class Trainer:
     def __init__(self, config_list):
         train_params = TrainParams(config_list.train_config)
-        feature_version = '%s.%s' % config_list.dataset_config['version'], \
-                          config_list.feature_config['version']
-        self.data_root = 'dataset_feature/version_%s' % feature_version
+        feature_version = '.'.join([config_list.dataset_config['version'],
+                                    config_list.feature_config['version']])
+        self.data_root = 'dataset_feature/version_' + feature_version
         self.model_type = config_list.feature_config['feature_type']
         self.num_epochs = train_params.num_epochs
         self.batch_size = train_params.batch_size
