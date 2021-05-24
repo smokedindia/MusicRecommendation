@@ -29,6 +29,8 @@ class MusicRecommendationModel(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Dropout(p=.5)
         )
+        n_bins = n_bins // 2
+        n_frames = n_frames // 2
         self.layer4 = nn.Sequential(
             nn.Linear(in_features=128 * n_bins * n_frames, out_features=2048),
             nn.ReLU(),
@@ -37,7 +39,7 @@ class MusicRecommendationModel(nn.Module):
             nn.ReLU(),
             nn.Dropout(p=.5),
             nn.Linear(in_features=1200, out_features=10),
-            nn.Softmax()
+            nn.Softmax(dim=1)
         )
         self.weights_init()
 

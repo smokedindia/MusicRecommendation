@@ -10,5 +10,13 @@
     "hop_length": 160,
     "n_mels": 128,
     "power": 1
+  },
+  "1": {
+    "feature_type": "mel",
+    "sr": 16000,
+    "n_fft": 2048,
+    "hop_length": 512,
+    "n_mels": 128,
+    "power": 2.0
   }
 }
