@@ -1,15 +1,17 @@
 import copy
+import json
 import multiprocessing as mp
 import os
-import json
-import tqdm
-from pydataclasses import DataClass
+import shutil
 
 import librosa
 import numpy as np
+import tqdm
+from dataclasses import dataclass
 
 
-class FeatureParams(DataClass):
+@dataclass
+class FeatureParams:
     def __init__(self, feature_config, **_extras):
         super(FeatureParams, self).__init__(**_extras)
         self.feature_type = feature_config["feature_type"]
@@ -48,20 +50,21 @@ class FeatureExtractor:
         """performs feature extraction process"""
         if not os.path.isdir(self.feature_params.save_root):
             os.mkdir(self.feature_params.save_root)
-        if not os.path.isdir(self.version_path):
+
+        if os.path.exists(self.version_path):
+            print('feature version exists, deleting')
+            shutil.rmtree(self.version_path)
             os.mkdir(self.version_path)
-        else:
-            print('feature version already exists')
-            return
 
         audio_ids = list(self.audio_meta.keys())
 
         # data_list.remove('config.json')
         with mp.Pool(processes=8) as pool:
-            metas = tqdm.tqdm(
-                pool.map(self.load_and_transform, audio_ids),
+            metas = list(tqdm.tqdm(
+                pool.imap_unordered(self.load_and_transform, audio_ids),
                 total=len(audio_ids),
                 desc='extracting feature')
+            )
 
         meta = {}
         for m in metas:
@@ -69,7 +72,7 @@ class FeatureExtractor:
                 meta.update(m)
 
         with open(os.path.join(
-                self.feature_params.save_root, self.metadata_file), 'w') as f:
+                self.version_path, self.metadata_file), 'w') as f:
             json.dump(meta, f, indent=4)
 
     def load_and_transform(self, audio_id):

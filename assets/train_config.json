@@ -1,0 +1,10 @@
+{
+  "roots": {
+    "save_root": "dataset_feature"
+  },
+  "0": {
+    "num_epochs": 50,
+    "batch_size": 300,
+    "learning_rate": 1e-3
+  }
+}

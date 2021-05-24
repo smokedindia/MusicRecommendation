@@ -1,1 +1,1 @@
-from dataset import MusicRecommendationDataset, ToTensor
+from .dataset import MusicRecommendationDataset, ToTensor

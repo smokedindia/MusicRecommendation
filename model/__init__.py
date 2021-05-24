@@ -1,1 +1,1 @@
-from model import MusicRecommendationModel
+from .model import MusicRecommendationModel
