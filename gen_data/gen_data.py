@@ -225,6 +225,7 @@ class DatasetGenerator:
             meta[file_id] = {
                 'index': i,
                 'filename': filename,
+                'label': genre
             }
 
         return meta

@@ -21,10 +21,10 @@ class FeatureParams:
         self.feature_param = None
         if self.feature_type == 'mel':
             self.n_fft = feature_config['n_fft']
-            self.win_length = feature_config['win_length']
-            self.hop_length = feature_config['hop_length']
+            self.win_length = feature_config.get('win_length', None)
+            self.hop_length = feature_config.get('hop_length', None)
             self.n_mels = feature_config['n_mels']
-            self.power = feature_config['power']
+            self.power = feature_config.get('power', 2.0)
         else:
             raise ValueError('Invalid feature called')
 
@@ -54,7 +54,7 @@ class FeatureExtractor:
         if os.path.exists(self.version_path):
             print('feature version exists, deleting')
             shutil.rmtree(self.version_path)
-            os.mkdir(self.version_path)
+        os.mkdir(self.version_path)
 
         audio_ids = list(self.audio_meta.keys())
 

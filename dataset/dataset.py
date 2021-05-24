@@ -24,12 +24,17 @@ class MusicRecommendationDataset(Dataset):
                               total=len(self.ids),
                               desc='Loading data')
                 )
+        self.genres = {'blues': 0, 'classical': 1, 'country': 2,
+                       'disco': 3, 'hiphop': 4, 'jazz': 5, 'metal': 6,
+                       'pop': 7, 'reggae': 8, 'rock': 9}
 
     def load(self, id_element):
         spectrogram = np.load(os.path.join(self.root,
                                            self.metadata[id_element]['filename']))
+        label = np.zeros(10)
+        label[self.genres[self.metadata[id_element]['label']]] = 1
         data = {'spectrogram': spectrogram,
-                'label': self.metadata[id]['label']}
+                'label': label}
         return data
 
     def __len__(self):
@@ -52,4 +57,4 @@ class ToTensor:
         spectrogram = data['spectrogram']
         label = data['label']
         return {'spectrogram': torch.from_numpy(spectrogram).unsqueeze(0),
-                'label': label}
+                'label': label.astype(np.longlong)}

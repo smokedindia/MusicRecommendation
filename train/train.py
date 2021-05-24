@@ -1,6 +1,7 @@
 import os
 import shutil
 
+import numpy as np
 import torch
 import torch.nn as nn
 import tqdm
@@ -35,8 +36,9 @@ class Trainer:
         self.train_ver = config_list.train_config['version']
         self.dataset_ver = config_list.dataset_config['version']
         self.feature_ver = config_list.feature_config['version']
-        self.load_mem = False if config_list.feature_config[
-                                     'feature_type'] == 'stft' else True
+        # self.load_mem = False if config_list.feature_config[
+        #                              'feature_type'] == 'stft' else True
+        self.load_mem = False
 
     def create_loaders(self):
         """
@@ -103,7 +105,7 @@ class Trainer:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         sample_batch = next(iter(test_loader))
-        dim = sample_batch.get('spec').shape
+        dim = sample_batch.get('spectrogram').shape
         model = MusicRecommendationModel(n_bins=dim[-2], n_frames=dim[-1])
         criterion = nn.CrossEntropyLoss()
 
@@ -111,13 +113,13 @@ class Trainer:
             model = nn.DataParallel(model)
         model = model.to(device)
 
-        optimizer = torch.optim.Adam(model.parameters(),
-                                     lr=self.learning_rate, )
+        optimizer = torch.optim.Adadelta(model.parameters(),
+                                         lr=self.learning_rate)
 
-        prog_bar = tqdm.tqdm(desc='training in progress',
-                             total=self.num_epochs,
-                             position=0,
-                             leave=True)
+        # prog_bar = tqdm.tqdm(desc='training in progress',
+        #                      total=self.num_epochs,
+        #                      position=0,
+        #                      leave=True)
         for epoch in range(self.num_epochs):
             accuracies = {}
             losses = {}
@@ -128,9 +130,8 @@ class Trainer:
                 with torch.set_grad_enabled(stage == 'train'):
                     prog_bar2 = tqdm.tqdm(
                         desc='epoch %s %s' % (epoch + 1, stage),
-                        total=len(dataloader),
-                        position=1,
-                        leave=True)
+                        total=len(dataloader)
+                    )
                     for idx, batch in enumerate(dataloader):
                         if stage == 'train':
                             model.train()
@@ -139,13 +140,15 @@ class Trainer:
                             model.eval()
 
                         data = batch.get('spectrogram').to(device)
-                        labels = batch.get('label').to(device).unsqueeze(1)
-                        preds = model(data)
+                        labels = batch.get('label').to(device)
+                        labels = torch.max(labels, 1)[1].to(device)
+                        pred = model(data)
 
-                        loss = criterion(preds, labels)
+                        loss = criterion(pred, labels)
                         running_loss += loss.item()
 
-                        num_correct = (preds == labels.view(-1)).sum()
+                        preds = torch.max(torch.round(pred), 1)[1].to(device)
+                        num_correct = (preds == labels).sum()
                         running_corr += num_correct
                         num_items += labels.shape[0]
 
@@ -190,7 +193,6 @@ class Trainer:
 
             torch.save(model.state_dict(),
                        os.path.join(save_root, str(epoch + 1)))
-            prog_bar.update()
-        prog_bar.close()
-
+        #     prog_bar.update()
+        # prog_bar.close()
         writer.close()
