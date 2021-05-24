@@ -1,0 +1,14 @@
+{
+  "roots": {
+    "save_root": "dataset_feature"
+  },
+  "0": {
+    "feature_type": "mel",
+    "sr": 16000,
+    "n_fft": 512,
+    "win_length": 400,
+    "hop_length": 160,
+    "n_mels": 128,
+    "power": 1
+  }
+}

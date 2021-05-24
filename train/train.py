@@ -4,7 +4,7 @@ import shutil
 import torch
 import torch.nn as nn
 import tqdm
-from pydataclasses import DataClass
+from dataclasses import dataclass
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
@@ -12,7 +12,8 @@ from dataset import MusicRecommendationDataset, ToTensor
 from model import MusicRecommendationModel
 
 
-class TrainParams(DataClass):
+@dataclass()
+class TrainParams:
     def __init__(self, train_config, **_extras):
         super(TrainParams, self).__init__(**_extras)
         self.num_epochs = train_config['num_epochs']
@@ -101,7 +102,9 @@ class Trainer:
         dataloaders = {'train': train_loader, 'val': val_loader}
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-        model = MusicRecommendationModel()
+        sample_batch = next(iter(test_loader))
+        dim = sample_batch.get('spec').shape
+        model = MusicRecommendationModel(n_bins=dim[-2], n_frames=dim[-1])
         criterion = nn.CrossEntropyLoss()
 
         if torch.cuda.device_count() > 1:

@@ -14,6 +14,11 @@ from scipy.io.wavfile import write
 class DatasetParams:
     def __init__(self, dataset_config):
         self.music_root = dataset_config['music_root']
+        # self.music_paths = []
+        # for genre in os.listdir(music_root):
+        #     names = os.listdir(os.path.join(music_root, genre))
+        #     self.music_paths.extend(os.path.join(genre, name)
+        #                             for name in names)
         self.save_root = dataset_config['save_root']
         self.version = dataset_config['version']
 
@@ -125,34 +130,52 @@ class DatasetGenerator:
             print('path: %s exists, deleting' % self.save_root)
             shutil.rmtree(self.save_root)
         os.makedirs(self.save_root)
+        dirs = os.listdir(self.dataset_param.music_root)
+        # music_paths = {}
+        # for directory in dirs:
+        #     music_paths[directory] = self.__get_all_paths(
+        #         os.path.join(self.dataset_param.music_root,
+        #                      directory))
 
-        music_paths = self.__get_all_paths(self.dataset_param.music_root)
+        # if self.TEST_MODE:
+        #     music_paths = music_paths[:20]
 
-        if self.TEST_MODE:
-            music_paths = music_paths[:20]
+        music_audios = {}
+        for genre in dirs:
+            music_paths = self.__get_all_paths(
+                os.path.join(self.dataset_param.music_root,
+                             genre))
+            music_audios[genre] = self.__load_audios(music_paths,
+                                                     audio_type=genre)
 
-        music_audios = self.__load_audios(music_paths, audio_type='music')
-
-        self.music_snip_generator = SnippetGenerator(
-            audios=music_audios,
-            sr=self.dataset_param.sr,
-            feature_size=self.dataset_param.feature_size,
-            hop_size=self.dataset_param.hop_size
-        )
+        self.music_snip_generator = {}
+        for genre in music_audios.keys():
+            self.music_snip_generator[genre] = SnippetGenerator(
+                audios=music_audios[genre],
+                sr=self.dataset_param.sr,
+                feature_size=self.dataset_param.feature_size,
+                hop_size=self.dataset_param.hop_size
+            )
 
     def gen_dataset(self):
         metadata_file = 'metadata.json'
         meta = {}
-        meta.update(
-            self.__gen_dataset(
-                audio_generator=self.music_snip_generator,
-                genre='i'
+        for genre in self.music_snip_generator.keys():
+            meta.update(
+                self.__gen_dataset(
+                    mix_func=self.mix_func,
+                    audio_generator=self.music_snip_generator[genre],
+                    genre=genre
+                )
             )
-        )
 
         metadata_dir = os.path.join(self.save_root, metadata_file)
         with open(metadata_dir, 'w') as f:
             json.dump(meta, f, indent=4)
+
+    @staticmethod
+    def mix_func(audio1: np.ndarray):
+        return audio1
 
     @staticmethod
     def __get_all_paths(directory):
@@ -181,11 +204,12 @@ class DatasetGenerator:
 
         return results
 
-    def __gen_dataset(self, audio_generator, genre):
+    def __gen_dataset(self, audio_generator, mix_func, genre):
         with mp.pool.ThreadPool(self.GEN_DATA_NUM_WORKERS) as pool:
             music_ds = list(
                 tqdm.tqdm(
-                    pool.imap_unordered(audio_generator.generate()),
+                    pool.imap_unordered(mix_func,
+                                        audio_generator.generate()),
                     total=len(audio_generator),
                     desc='Creating %s' % genre
                 )
@@ -194,14 +218,13 @@ class DatasetGenerator:
         meta = {}
         for i, data in enumerate(music_ds):
             file_id = '%s_%s' % (genre, i)
-            filename = file_id+'.wav'
+            filename = file_id + '.wav'
             write(filename=os.path.join(self.save_root, filename),
                   rate=self.dataset_param.sr,
                   data=data)
             meta[file_id] = {
                 'index': i,
                 'filename': filename,
-                'genre': genre
             }
 
         return meta

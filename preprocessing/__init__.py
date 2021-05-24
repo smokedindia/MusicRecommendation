@@ -1,1 +1,1 @@
-from preprocessing import FeatureExtractor
+from .preprocessing import FeatureExtractor
