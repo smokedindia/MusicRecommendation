@@ -8,7 +8,7 @@ class MusicRecommendationModel(nn.Module):
             nn.Conv2d(in_channels=1, out_channels=32,
                       kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
             nn.BatchNorm2d(num_features=32),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             # nn.Dropout(p=.5)
         )
@@ -18,7 +18,7 @@ class MusicRecommendationModel(nn.Module):
             nn.Conv2d(in_channels=32, out_channels=64,
                       kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
             nn.BatchNorm2d(num_features=64),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             # nn.Dropout(p=.5)
         )
@@ -28,7 +28,7 @@ class MusicRecommendationModel(nn.Module):
             nn.Conv2d(in_channels=64, out_channels=128,
                       kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
             nn.BatchNorm2d(num_features=128),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             # nn.Dropout(p=.5)
         )
@@ -36,10 +36,10 @@ class MusicRecommendationModel(nn.Module):
         n_frames = n_frames // 2
         self.layer4 = nn.Sequential(
             nn.Linear(in_features=128 * n_bins * n_frames, out_features=2048),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Dropout(p=.4),
             nn.Linear(in_features=2048, out_features=1200),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Dropout(p=.4),
             nn.Linear(in_features=1200, out_features=10),
             nn.Softmax(dim=1)
