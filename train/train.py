@@ -59,21 +59,25 @@ class Trainer:
             dataset=dataset,
             lengths=[round(.8 * len(dataset)),
                      round(.2 * len(dataset))], )
-        len_val_dataset = len(rest_dataset) // 2
-        len_test_dataset = len(rest_dataset) - len_val_dataset
-        val_dataset, test_dataset = torch.utils.data.random_split(
-            dataset=rest_dataset,
-            lengths=[len_val_dataset, len_test_dataset], )
+        # len_val_dataset = len(rest_dataset) // 2
+        # len_test_dataset = len(rest_dataset) - len_val_dataset
+        # val_dataset, test_dataset = torch.utils.data.random_split(
+        #     dataset=rest_dataset,
+        #     lengths=[len_val_dataset, len_test_dataset], )
         train_loader = DataLoader(dataset=train_dataset,
                                   batch_size=self.batch_size,
                                   shuffle=True)
-        val_loader = DataLoader(dataset=val_dataset,
+        val_loader = DataLoader(dataset=rest_dataset,
                                 batch_size=self.batch_size,
                                 shuffle=False)
-        test_loader = DataLoader(dataset=test_dataset,
-                                 batch_size=self.batch_size,
-                                 shuffle=False)
-        return train_loader, val_loader, test_loader
+        # val_loader = DataLoader(dataset=val_dataset,
+        #                         batch_size=self.batch_size,
+        #                         shuffle=False)
+        # test_loader = DataLoader(dataset=test_dataset,
+        #                          batch_size=self.batch_size,
+        #                          shuffle=False)
+        # return train_loader, val_loader, test_loader
+        return train_loader, val_loader
 
     def fit(self):
         """
@@ -100,11 +104,12 @@ class Trainer:
             shutil.rmtree(save_root)
         os.makedirs(save_root)
 
-        train_loader, val_loader, test_loader = self.create_loaders()
+        # train_loader, val_loader, test_loader = self.create_loaders()
+        train_loader, val_loader = self.create_loaders()
         dataloaders = {'train': train_loader, 'val': val_loader}
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-        sample_batch = next(iter(test_loader))
+        sample_batch = next(iter(val_loader))
         dim = sample_batch.get('spectrogram').shape
         model = MusicRecommendationModel(n_bins=dim[-2], n_frames=dim[-1])
         criterion = nn.CrossEntropyLoss()
@@ -192,7 +197,7 @@ class Trainer:
             writer.add_scalars('loss', losses, global_step=epoch + 1)
 
             torch.save(model.state_dict(),
-                       os.path.join(save_root, str(epoch + 1)))
+                       os.path.join(save_root, 'epoch_'+str(epoch + 1)))
         #     prog_bar.update()
         # prog_bar.close()
         writer.close()
