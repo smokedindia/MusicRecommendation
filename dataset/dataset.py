@@ -29,8 +29,10 @@ class MusicRecommendationDataset(Dataset):
                        'pop': 7, 'reggae': 8, 'rock': 9}
 
     def load(self, id_element):
-        spectrogram = np.load(os.path.join(self.root,
-                                           self.metadata[id_element]['filename']))
+        spectrogram = np.load(
+            os.path.join(self.root,
+                         self.metadata[id_element]['filename'])
+        )
         label = np.zeros(10)
         label[self.genres[self.metadata[id_element]['label']]] = 1
         data = {'spectrogram': spectrogram,

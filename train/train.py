@@ -1,7 +1,6 @@
 import os
 import shutil
 
-import numpy as np
 import torch
 import torch.nn as nn
 import tqdm
@@ -169,35 +168,34 @@ class Trainer:
                     losses[stage] = running_loss / num_items
                     num_items = 0
 
-            # code for histogram drawing
-            #
-            # layers = [model.module.layer1, model.module.layer2,
-            #           model.module.layer3, model.module.layer4]
-            # linear_count = 1
-            # for i in range(len(layers)):
-            #     for layer in layers[i]:
-            #         layer_name = layer._get_name()
-            #         if layer_name == 'Conv2d':
-            #             desc = 'layer %s - %s' % (i + 1, layer_name)
-            #             writer.add_histogram(desc,
-            #                                  layer.weight)
-            #         elif layer_name == 'Linear':
-            #             desc = 'layer %s - %s' % (i + 1,
-            #                                       layer_name + str(
-            #                                           linear_count))
-            #             writer.add_histogram(desc,
-            #                                  layer.weight)
-            #             if linear_count == 1:
-            #                 linear_count += 1
-            #             else:
-            #                 linear_count = 1
+            layers = [model.module.layer1, model.module.layer2,
+                      model.module.layer3, model.module.layer4]
+            linear_count = 1
+            for i in range(len(layers)):
+                for layer in layers[i]:
+                    layer_name = layer._get_name()
+                    if layer_name == 'Conv2d':
+                        desc = 'layer %s - %s' % (i + 1, layer_name)
+                        writer.add_histogram(desc,
+                                             layer.weight)
+                    elif layer_name == 'Linear':
+                        desc = 'layer %s - %s' % (i + 1,
+                                                  layer_name + str(
+                                                      linear_count)
+                                                  )
+                        writer.add_histogram(desc,
+                                             layer.weight)
+                        if linear_count == 1:
+                            linear_count += 1
+                        else:
+                            linear_count = 1
 
             writer.add_scalars('accuracy', accuracies,
                                global_step=epoch + 1)
             writer.add_scalars('loss', losses, global_step=epoch + 1)
 
-            torch.save(model.state_dict(),
-                       os.path.join(save_root, 'epoch_'+str(epoch + 1)))
+        torch.save(model.state_dict(),
+                   os.path.join(save_root, 'model.ckpt'))
         #     prog_bar.update()
         # prog_bar.close()
         writer.close()
