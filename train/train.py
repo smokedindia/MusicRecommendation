@@ -19,6 +19,7 @@ class TrainParams:
         self.num_epochs = train_config['num_epochs']
         self.batch_size = train_config['batch_size']
         self.learning_rate = train_config['learning_rate']
+        self.weight_decay = train_config.get('weight_decay', 0)
 
 
 class Trainer:
@@ -31,6 +32,7 @@ class Trainer:
         self.num_epochs = train_params.num_epochs
         self.batch_size = train_params.batch_size
         self.learning_rate = train_params.learning_rate
+        self.weight_decay = train_params.weight_decay
 
         self.train_ver = config_list.train_config['version']
         self.dataset_ver = config_list.dataset_config['version']
@@ -118,7 +120,8 @@ class Trainer:
         model = model.to(device)
 
         optimizer = torch.optim.Adadelta(model.parameters(),
-                                         lr=self.learning_rate)
+                                         lr=self.learning_rate,
+                                         weight_decay=self.weight_decay)
 
         # prog_bar = tqdm.tqdm(desc='training in progress',
         #                      total=self.num_epochs,
