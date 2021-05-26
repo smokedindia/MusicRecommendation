@@ -20,6 +20,7 @@ class TrainParams:
         self.batch_size = train_config['batch_size']
         self.learning_rate = train_config['learning_rate']
         self.weight_decay = train_config.get('weight_decay', 0)
+        self.normalize = train_config.get('normalize', 0)
 
 
 class Trainer:
@@ -33,6 +34,7 @@ class Trainer:
         self.batch_size = train_params.batch_size
         self.learning_rate = train_params.learning_rate
         self.weight_decay = train_params.weight_decay
+        self.normalize = train_params.normalize
 
         self.train_ver = config_list.train_config['version']
         self.dataset_ver = config_list.dataset_config['version']
@@ -53,7 +55,8 @@ class Trainer:
         transform = ToTensor()
         dataset = MusicRecommendationDataset(transform=transform,
                                              root=self.data_root,
-                                             load_mem=self.load_mem)
+                                             load_mem=self.load_mem,
+                                             normalize=self.normalize)
 
         # data split ratio = 8 : 1 : 1 (train : validation : test)
         train_dataset, rest_dataset = torch.utils.data.random_split(
