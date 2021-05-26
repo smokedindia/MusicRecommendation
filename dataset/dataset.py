@@ -5,14 +5,18 @@ import os
 import numpy as np
 import torch
 import tqdm
+from sklearn import preprocessing
 from torch.utils.data import Dataset
 
 
 class MusicRecommendationDataset(Dataset):
-    def __init__(self, root, transform, load_mem):
+    def __init__(self, root, transform, load_mem, normalize):
         self.transform = transform
         self.root = root
         self.load_mem = load_mem
+        self.normalize = normalize
+        if normalize:
+           self.scaler = preprocessing.StandardScaler()
         with open(os.path.join(self.root, 'metadata.json'), 'r') as f:
             self.metadata = json.load(f)
         self.ids = list(self.metadata.keys())
@@ -33,6 +37,8 @@ class MusicRecommendationDataset(Dataset):
             os.path.join(self.root,
                          self.metadata[id_element]['filename'])
         )
+        if self.normalize:
+            spectrogram = self.scaler.fit_transform(spectrogram)
         label = np.zeros(10)
         label[self.genres[self.metadata[id_element]['label']]] = 1
         data = {'spectrogram': spectrogram,

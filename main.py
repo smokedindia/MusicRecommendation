@@ -105,7 +105,7 @@ def main():
                             'all'],
                    default='train')
     # default version structure: dataset_version.feature_version.train_version
-    p.add_argument('-v', '--version', type=str, default='1.1.3.0')
+    p.add_argument('-v', '--version', type=str)
     p.add_argument('--config_root', type=str, default='./assets')
     p.add_argument('--hop_time', type=float, default=.5)
     p.add_argument('-n', '--norm', type=bool, default=False)
