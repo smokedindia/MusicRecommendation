@@ -4,6 +4,9 @@
     "save_root": "dataset_raw",
     "metadata_file": "metadata.json"
   },
+  "links": {
+    "music_link": "http://opihi.cs.uvic.ca/sound/genres.tar.gz"
+  },
   "0": {
     "feature_size": 1,
     "sr": 16000,

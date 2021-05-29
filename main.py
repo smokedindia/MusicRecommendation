@@ -51,6 +51,8 @@ def load_config(config_path, version):
     # dictionary
     if config_total.get('roots') is not None:
         result.update(config_total['roots'])
+    if config_total.get('links') is not None:
+        result.update(config_total['links'])
     result['version'] = version
     return result
 
