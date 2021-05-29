@@ -3,11 +3,11 @@ import multiprocessing as mp
 import os
 import random
 import shutil
-import wget
 
 import librosa
 import numpy as np
 import tqdm
+import wget
 from audioread import NoBackendError
 from scipy.io.wavfile import write
 
@@ -32,7 +32,6 @@ class DatasetParams:
         self.hop_size = dataset_config.get('hop_size', self.feature_size)
 
 
-
 def make_database(dataset_param):
     """
     If database/GTZAN/genres_original is not made,
@@ -51,6 +50,7 @@ def make_database(dataset_param):
     if not os.path.isdir("mkdir database/GTZAN/genres_original"):
         os.system("mkdir database/GTZAN/genres_original")
     os.system("cp -r ./genres/* ./database/GTZAN/genres_original/")
+
 
 class SnippetGenerator:
     """Audio snippet generator that provides iterator for audio snippet"""

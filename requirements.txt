@@ -89,3 +89,10 @@ websocket-client==1.0.1
 Werkzeug==2.0.1
 widgetsnbextension==3.5.1
 zipp==3.4.1
+
+dataclasses~=0.8
+numpy~=1.19.2
+wget~=3.2
+librosa~=0.8.0
+audioread~=2.1.9
+scipy~=1.5.3
