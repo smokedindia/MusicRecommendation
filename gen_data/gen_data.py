@@ -3,11 +3,11 @@ import multiprocessing as mp
 import os
 import random
 import shutil
-import wget
 
 import librosa
 import numpy as np
 import tqdm
+import wget
 from audioread import NoBackendError
 from scipy.io.wavfile import write
 
@@ -15,11 +15,6 @@ from scipy.io.wavfile import write
 class DatasetParams:
     def __init__(self, dataset_config):
         self.music_root = dataset_config['music_root']
-        # self.music_paths = []
-        # for genre in os.listdir(music_root):
-        #     names = os.listdir(os.path.join(music_root, genre))
-        #     self.music_paths.extend(os.path.join(genre, name)
-        #                             for name in names)
         self.save_root = dataset_config['save_root']
 
         self.music_link = dataset_config['music_link']
@@ -30,7 +25,6 @@ class DatasetParams:
 
         self.feature_size = dataset_config.get('feature_size', 1)
         self.hop_size = dataset_config.get('hop_size', self.feature_size)
-
 
 
 def make_database(dataset_param):
@@ -51,6 +45,7 @@ def make_database(dataset_param):
     if not os.path.isdir("mkdir database/GTZAN/genres_original"):
         os.system("mkdir database/GTZAN/genres_original")
     os.system("cp -r ./genres/* ./database/GTZAN/genres_original/")
+
 
 class SnippetGenerator:
     """Audio snippet generator that provides iterator for audio snippet"""
