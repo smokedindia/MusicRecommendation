@@ -47,6 +47,24 @@ def download_dataset():
     raise SystemError('dataset download failed. check code or database')
 
 
+def make_database():
+    """
+    If database/GTZAN/genres_original is not made,
+    this function automatically generates this folder.
+    """
+    if not os.path.isdir("./genres"):
+        if not os.path.isfile("./genres.tar.gz"):
+            os.system("wget http://opihi.cs.uvic.ca/sound/genres.tar.gz")
+        os.system("tar -xf genres.tar.gz")
+    os.system("rm -r ./genres/*.mf")
+    if not os.path.isdir("./database"):
+        os.system("mkdir database")
+    if not os.path.isdir("mkdir database/GTZAN"):
+        os.system("mkdir database/GTZAN")
+    if not os.path.isdir("mkdir database/GTZAN/genres_original"):
+        os.system("mkdir database/GTZAN/genres_original")
+    os.system("cp -r ./genres/* ./database/GTZAN/genres_original/")
+
 class SnippetGenerator:
     """Audio snippet generator that provides iterator for audio snippet"""
     ENERGY_THRESHOLD = 1e-4
@@ -130,6 +148,8 @@ class DatasetGenerator:
             print('path: %s exists, deleting' % self.save_root)
             shutil.rmtree(self.save_root)
         os.makedirs(self.save_root)
+        if not os.path.isdir(self.dataset_param.music_root):
+            make_database()
         dirs = os.listdir(self.dataset_param.music_root)
         # music_paths = {}
         # for directory in dirs:
