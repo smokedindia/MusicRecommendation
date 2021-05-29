@@ -3,6 +3,7 @@ import multiprocessing as mp
 import os
 import random
 import shutil
+import wget
 
 import librosa
 import numpy as np
@@ -20,6 +21,9 @@ class DatasetParams:
         #     self.music_paths.extend(os.path.join(genre, name)
         #                             for name in names)
         self.save_root = dataset_config['save_root']
+
+        self.music_link = dataset_config['music_link']
+
         self.version = dataset_config['version']
 
         self.sr = dataset_config['sr']
@@ -28,33 +32,16 @@ class DatasetParams:
         self.hop_size = dataset_config.get('hop_size', self.feature_size)
 
 
-def download_dataset():
-    """
-    downloads dataset for training data generation
-    :return: 1 if download successful
-    """
-    print('downloading datasets')
-    if not os.path.isdir('database'):
-        os.mkdir('database')
 
-    # download 'GTZAN Dataset - Music Genre Classification'
-    if not os.path.isfile('genres.tar.gz'):
-        os.system('wget https://www.kaggle.com/andradaolteanu/'
-                  'gtzan-dataset-music-genre-classification/download')
-        os.system('unzip archive.zip')
-        os.system('mv Data GTZAN')
-        return 1
-    raise SystemError('dataset download failed. check code or database')
-
-
-def make_database():
+def make_database(dataset_param):
     """
     If database/GTZAN/genres_original is not made,
     this function automatically generates this folder.
     """
+    music_link = dataset_param.music_link
     if not os.path.isdir("./genres"):
         if not os.path.isfile("./genres.tar.gz"):
-            os.system("wget http://opihi.cs.uvic.ca/sound/genres.tar.gz")
+            wget.download(music_link)
         os.system("tar -xf genres.tar.gz")
     os.system("rm -r ./genres/*.mf")
     if not os.path.isdir("./database"):
@@ -149,7 +136,7 @@ class DatasetGenerator:
             shutil.rmtree(self.save_root)
         os.makedirs(self.save_root)
         if not os.path.isdir(self.dataset_param.music_root):
-            make_database()
+            make_database(self.dataset_param)
         dirs = os.listdir(self.dataset_param.music_root)
         # music_paths = {}
         # for directory in dirs:
