@@ -15,11 +15,6 @@ from scipy.io.wavfile import write
 class DatasetParams:
     def __init__(self, dataset_config):
         self.music_root = dataset_config['music_root']
-        # self.music_paths = []
-        # for genre in os.listdir(music_root):
-        #     names = os.listdir(os.path.join(music_root, genre))
-        #     self.music_paths.extend(os.path.join(genre, name)
-        #                             for name in names)
         self.save_root = dataset_config['save_root']
 
         self.music_link = dataset_config['music_link']
