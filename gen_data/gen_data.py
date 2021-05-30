@@ -159,6 +159,8 @@ class DatasetGenerator:
                 hop_size=self.dataset_param.hop_size
             )
 
+        self.count = 0
+
     def gen_dataset(self):
         metadata_file = 'metadata.json'
         meta = {}
@@ -218,16 +220,16 @@ class DatasetGenerator:
             )
 
         meta = {}
-        for i, data in enumerate(music_ds):
-            file_id = '%s_%s' % (genre, i)
+        for data in music_ds:
+            file_id = str(self.count)
             filename = file_id + '.wav'
             write(filename=os.path.join(self.save_root, filename),
                   rate=self.dataset_param.sr,
                   data=data)
             meta[file_id] = {
-                'index': i,
-                'filename': filename,
+                'filename': file_id,
                 'label': genre
             }
+            self.count += 1
 
         return meta
