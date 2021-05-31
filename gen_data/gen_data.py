@@ -26,6 +26,9 @@ class DatasetParams:
         self.feature_size = dataset_config.get('feature_size', 1)
         self.hop_size = dataset_config.get('hop_size', self.feature_size)
 
+        self.snr_low = dataset_config['snr_low']
+        self.snr_high = dataset_config['snr_high']
+
 
 def make_database(dataset_param):
     """
@@ -167,7 +170,7 @@ class DatasetGenerator:
         for genre in self.music_snip_generator.keys():
             meta.update(
                 self.__gen_dataset(
-                    mix_func=self.mix_func,
+                    mix_func=self.mix_audio,
                     audio_generator=self.music_snip_generator[genre],
                     genre=genre
                 )
@@ -177,9 +180,26 @@ class DatasetGenerator:
         with open(metadata_dir, 'w') as f:
             json.dump(meta, f, indent=4)
 
-    @staticmethod
-    def mix_func(audio1: np.ndarray):
-        return audio1
+    def mix_audio(self, audio1: np.ndarray):
+        """
+        Mix audio and noise with random SNR in range
+        :param audio1: audio data 1
+        :return:
+            mixed audio data, SNR
+        """
+        noise = self.noise_snip_generator.get_random_snippet()
+
+        snr = random.randrange(self.dataset_param.snr_low,
+                               self.dataset_param.snr_high + 1)
+
+        rms1 = np.sqrt(np.sum(np.square(audio1) / len(audio1)))
+        rms2 = np.sqrt(np.sum(np.square(noise) / len(noise)))
+
+        audio1_norm = rms2 / rms1 * audio1
+
+        audio1_gain = 10 ** (snr / 20) * audio1_norm
+
+        return audio1_gain + noise, snr
 
     @staticmethod
     def __get_all_paths(directory):
@@ -212,23 +232,23 @@ class DatasetGenerator:
         with mp.pool.ThreadPool(self.GEN_DATA_NUM_WORKERS) as pool:
             music_ds = list(
                 tqdm.tqdm(
-                    pool.imap_unordered(mix_func,
-                                        audio_generator.generate()),
+                    pool.imap_unordered(mix_func, audio_generator.generate()),
                     total=len(audio_generator),
                     desc='Creating %s' % genre
                 )
             )
 
         meta = {}
-        for data in music_ds:
+        for audio_snr in music_ds:
             file_id = str(self.count)
             filename = file_id + '.wav'
             write(filename=os.path.join(self.save_root, filename),
                   rate=self.dataset_param.sr,
-                  data=data)
+                  data=audio_snr[0])
             meta[file_id] = {
                 'filename': file_id,
-                'label': genre
+                'label': genre,
+                'snr': audio_snr[1]
             }
             self.count += 1
 
