@@ -26,8 +26,8 @@ class DatasetParams:
         self.feature_size = dataset_config.get('feature_size', 1)
         self.hop_size = dataset_config.get('hop_size', self.feature_size)
 
-        self.snr_low = dataset_config['snr_low']
-        self.snr_high = dataset_config['snr_high']
+        self.snr_low = dataset_config.get('snr_low', None)
+        self.snr_high = dataset_config.get('snr_high', None)
 
 
 def make_database(dataset_param):
@@ -73,7 +73,6 @@ def make_database(dataset_param):
     for file in data_files:
         if file.endswith(".mf"):
             os.remove(os.path.join(dataset_path, file))
-
 
 
 class SnippetGenerator:
@@ -196,7 +195,8 @@ class DatasetGenerator:
         for genre in self.music_snip_generator.keys():
             meta.update(
                 self.__gen_dataset(
-                    mix_func=self.mix_audio,
+                    mix_func=self.mix_audio
+                    if self.dataset_param.snr_low is not None else self.no_mix,
                     audio_generator=self.music_snip_generator[genre],
                     genre=genre
                 )
@@ -205,6 +205,16 @@ class DatasetGenerator:
         metadata_dir = os.path.join(self.save_root, metadata_file)
         with open(metadata_dir, 'w') as f:
             json.dump(meta, f, indent=4)
+
+    @staticmethod
+    def no_mix(audio1: np.ndarray):
+        """
+        Simply returns the audio if mixing SNR is not defined
+        :param audio1: audio data 1
+        :return:
+            same audio data 1
+        """
+        return audio1
 
     def mix_audio(self, audio1: np.ndarray):
         """
