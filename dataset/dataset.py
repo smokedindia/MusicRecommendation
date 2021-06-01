@@ -9,21 +9,24 @@ from torch.utils.data import Dataset
 
 
 class MusicRecommendationDataset(Dataset):
-    def __init__(self, root, transform, load_mem):
+    def __init__(self, root, transform, feature_meta=None):
         self.transform = transform
         self.root = root
-        self.load_mem = load_mem
-        with open(os.path.join(self.root, 'metadata.json'), 'r') as f:
-            self.metadata = json.load(f)
-        self.ids = list(self.metadata.keys())
 
-        if self.load_mem:
+        if feature_meta is not None:
+            self.feature_meta = feature_meta
+            self.ids = list(self.feature_meta.keys())
+        else:
             with mp.pool.ThreadPool(processes=16) as pool:
                 self.data_list = list(
                     tqdm.tqdm(pool.imap_unordered(self.load, self.ids),
                               total=len(self.ids),
                               desc='Loading data')
                 )
+            with open(os.path.join(self.root, 'metadata.json'), 'r') as f:
+                self.metadata = json.load(f)
+            self.ids = list(self.metadata.keys())
+
         self.genres = {'blues': 0, 'classical': 1, 'country': 2,
                        'disco': 3, 'hiphop': 4, 'jazz': 5, 'metal': 6,
                        'pop': 7, 'reggae': 8, 'rock': 9}
@@ -43,8 +46,11 @@ class MusicRecommendationDataset(Dataset):
         return len(self.ids)
 
     def __getitem__(self, item):
-        if self.load_mem:
-            data = self.data_list[item]
+        if self.feature_meta is not None:
+            spectrogram = self.feature_meta[str(item)]['spectrogram']
+            label = np.zeros(10)
+            label[self.genres[self.feature_meta[str(item)]['label']]] = 1
+            data = {'spectrogram': spectrogram, 'label': label}
         else:
             data = self.load(id_element=self.ids[item])
 

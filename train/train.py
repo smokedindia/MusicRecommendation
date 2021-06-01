@@ -23,7 +23,7 @@ class TrainParams:
 
 
 class Trainer:
-    def __init__(self, config_list):
+    def __init__(self, config_list, feature_meta=None):
         train_params = TrainParams(config_list.train_config)
         feature_version = '.'.join([config_list.dataset_config['version'],
                                     config_list.feature_config['version']])
@@ -39,7 +39,7 @@ class Trainer:
         self.feature_ver = config_list.feature_config['version']
         # self.load_mem = False if config_list.feature_config[
         #                              'feature_type'] == 'stft' else True
-        self.load_mem = False
+        self.feature_meta = feature_meta
 
     def create_loaders(self):
         """
@@ -53,7 +53,7 @@ class Trainer:
         transform = ToTensor()
         dataset = MusicRecommendationDataset(transform=transform,
                                              root=self.data_root,
-                                             load_mem=self.load_mem)
+                                             feature_meta=self.feature_meta)
 
         # data split ratio = 8 : 1 : 1 (train : validation : test)
         train_dataset, rest_dataset = torch.utils.data.random_split(
@@ -94,16 +94,14 @@ class Trainer:
                                 self.feature_ver,
                                 self.train_ver])
         writer_path = 'runs/%s' % version_all
-        if os.path.isdir(writer_path):
-            print('tensorboard version already exists. removing content')
-            shutil.rmtree(writer_path)
-        writer = SummaryWriter(writer_path)
-
         save_root = 'models/%s' % version_all
-        if os.path.exists(save_root):
+        if os.path.isdir(writer_path):
             print('train version already exists. removing content.')
-            shutil.rmtree(save_root)
-        os.makedirs(save_root)
+            shutil.rmtree(writer_path)
+            if os.path.exists(save_root):
+                shutil.rmtree(save_root)
+            os.makedirs(save_root)
+        writer = SummaryWriter(writer_path)
 
         # train_loader, val_loader, test_loader = self.create_loaders()
         train_loader, val_loader = self.create_loaders()
