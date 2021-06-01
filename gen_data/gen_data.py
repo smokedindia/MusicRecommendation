@@ -36,18 +36,39 @@ def make_database(dataset_param):
     this function automatically generates this folder.
     """
     music_link = dataset_param.music_link
-    if not os.path.isdir("./genres"):
+    if not os.path.isdir("./database/GTZAN/genres_original/") or \
+            not os.path.exists("./database/GTZAN/genres_original/*"):
+        """
+        2 cases. 
+        1. If there's no directory
+        2. If there is directory, but there's no file in there. 
+        """
         if not os.path.isfile("./genres.tar.gz"):
             wget.download(music_link)
-        os.system("tar -xf genres.tar.gz")
-    os.system("rm -r ./genres/*.mf")
-    if not os.path.isdir("./database"):
-        os.system("mkdir database")
-    if not os.path.isdir("mkdir database/GTZAN"):
-        os.system("mkdir database/GTZAN")
-    if not os.path.isdir("mkdir database/GTZAN/genres_original"):
-        os.system("mkdir database/GTZAN/genres_original")
-    os.system("cp -r ./genres/* ./database/GTZAN/genres_original/")
+
+        if os.path.isdir("./genres") and not os.path.exists("./genres/*"):
+            # When there is genres folder, but there's no file in there
+            shutil.rmtree("./genres")
+            os.system("tar -xf genres.tar.gz")
+        elif not os.path.isdir("./genres"):
+            # When there is no genre folder
+            os.system("tar -xf genres.tar.gz")
+
+        # Remove the .mf files in genres folder
+        genres = os.listdir("./genres")
+        for file in genres:
+            if file.endswith(".mf"):
+                os.remove(os.path.join("./genres", file))
+
+
+        # os.system("cp -r ./genres/* ./database/GTZAN/genres_original/")
+    if not os.path.isdir("./" + dataset_param.music_root):
+        shutil.copytree('./genres', "./"+dataset_param.music_root)
+    elif not os.path.exists("./database/GTZAN/genres_original/*"):
+        os.rmdir("./"+dataset_param.music_root)
+        shutil.copytree('./genres', "./"+dataset_param.music_root)
+
+
 
 
 class SnippetGenerator:
