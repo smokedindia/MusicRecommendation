@@ -36,18 +36,44 @@ def make_database(dataset_param):
     this function automatically generates this folder.
     """
     music_link = dataset_param.music_link
-    if not os.path.isdir("./genres"):
+    dataset_path = os.path.join("./", dataset_param.music_root)
+    dataset_files = os.path.join(dataset_path, "/*")
+    if not os.path.isdir(dataset_path) or \
+            not os.path.exists(dataset_files):
+        """
+        2 cases. 
+        1. If there's no directory
+        2. If there is directory, but there's no file in there. 
+        """
         if not os.path.isfile("./genres.tar.gz"):
+            print("Downloading Dataset...")
             wget.download(music_link)
-        os.system("tar -xf genres.tar.gz")
-    os.system("rm -r ./genres/*.mf")
-    if not os.path.isdir("./database"):
-        os.system("mkdir database")
-    if not os.path.isdir("mkdir database/GTZAN"):
-        os.system("mkdir database/GTZAN")
-    if not os.path.isdir("mkdir database/GTZAN/genres_original"):
-        os.system("mkdir database/GTZAN/genres_original")
-    os.system("cp -r ./genres/* ./database/GTZAN/genres_original/")
+            print("Download finished")
+
+        if os.path.isdir("./genres") and not os.path.exists("./genres/*"):
+            # When there is genres folder, but there's no file in there
+            shutil.rmtree("./genres")
+
+        if not os.path.isdir("./genres"):
+            # When there is no genre folder
+            print("Unzipping Dataset...")
+            os.system("tar -xf genres.tar.gz")
+            print("Unzip finished")
+
+    if os.path.isdir(dataset_path) and \
+            not os.path.exists(dataset_files):
+        os.rmdir(dataset_path)
+
+    if not os.path.isdir("./" + dataset_param.music_root):
+        print("Start Copying to Database Directory...")
+        shutil.copytree('./genres', dataset_path)
+        print("Copy Finished")
+
+    data_files = os.listdir(dataset_path)
+    for file in data_files:
+        if file.endswith(".mf"):
+            os.remove(os.path.join(dataset_path, file))
+
 
 
 class SnippetGenerator:
