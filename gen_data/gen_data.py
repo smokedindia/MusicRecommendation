@@ -148,16 +148,17 @@ class DatasetGenerator:
     LOAD_AUDIO_NUM_WORKERS = 16
     GEN_DATA_NUM_WORKERS = 32
 
-    def __init__(self, dataset_config):
+    def __init__(self, dataset_config, save):
         self.dataset_param = DatasetParams(dataset_config)
-        self.save_root = os.path.join(self.dataset_param.save_root,
-                                      'version_%s' %
-                                      self.dataset_param.version)
+        if save:
+            self.save_root = os.path.join(self.dataset_param.save_root,
+                                          'version_%s' %
+                                          self.dataset_param.version)
 
-        if os.path.exists(self.save_root):
-            print('path: %s exists, deleting' % self.save_root)
-            shutil.rmtree(self.save_root)
-        os.makedirs(self.save_root)
+            if os.path.exists(self.save_root):
+                print('path: %s exists, deleting' % self.save_root)
+                shutil.rmtree(self.save_root)
+            os.makedirs(self.save_root)
         if not os.path.isdir(self.dataset_param.music_root):
             make_database(self.dataset_param)
         dirs = os.listdir(self.dataset_param.music_root)
@@ -188,6 +189,7 @@ class DatasetGenerator:
             )
 
         self.count = 0
+        self.save = save
 
     def gen_dataset(self):
         metadata_file = 'metadata.json'
@@ -202,9 +204,12 @@ class DatasetGenerator:
                 )
             )
 
-        metadata_dir = os.path.join(self.save_root, metadata_file)
-        with open(metadata_dir, 'w') as f:
-            json.dump(meta, f, indent=4)
+        if self.save:
+            metadata_dir = os.path.join(self.save_root, metadata_file)
+            with open(metadata_dir, 'w') as f:
+                json.dump(meta, f, indent=4)
+        else:
+            return meta
 
     @staticmethod
     def no_mix(audio1: np.ndarray):
@@ -276,16 +281,22 @@ class DatasetGenerator:
 
         meta = {}
         for audio_snr in music_ds:
-            file_id = str(self.count)
-            filename = file_id + '.wav'
-            write(filename=os.path.join(self.save_root, filename),
-                  rate=self.dataset_param.sr,
-                  data=audio_snr[0])
-            meta[file_id] = {
-                'filename': file_id,
+            audio, snr = audio_snr if self.dataset_param.snr_low is not None\
+                else audio_snr, None
+            meta_key = str(self.count)
+            meta[meta_key] = {
+                'filename': self.count,
                 'label': genre,
-                'snr': audio_snr[1]
+                'snr': snr
             }
+            if self.save:
+                filename = str(self.count) + '.wav'
+                write(filename=os.path.join(self.save_root, filename),
+                      rate=self.dataset_param.sr,
+                      data=audio)
+            else:
+                meta[meta_key].update({'data': audio})
+
             self.count += 1
 
         return meta

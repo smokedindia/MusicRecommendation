@@ -30,7 +30,8 @@ class FeatureParams:
 
 
 class FeatureExtractor:
-    def __init__(self, config_list, metadata_file='metadata.json'):
+    def __init__(self, config_list, metadata_file='metadata.json',
+                 raw_meta=None):
         self.data_root = 'dataset_raw/version_%s' % \
                          config_list.dataset_config['version']
         self.feature_params = FeatureParams(config_list.feature_config)
@@ -41,25 +42,32 @@ class FeatureExtractor:
         # options = {'mel': self.logmelspec}
         self.metadata_file = metadata_file
 
-        with open(os.path.join(self.data_root, metadata_file), 'r') as f:
-            self.audio_meta = json.load(f)
+        if raw_meta is not None:
+            self.audio_meta = raw_meta
+            self.feature_meta = {}
+            self.save = False
+        else:
+            with open(os.path.join(self.data_root, metadata_file), 'r') as f:
+                self.audio_meta = json.load(f)
+            self.save = True
 
         # self.feature_func = options[self.feature_params.feature_type]
 
     def extract(self):
         """performs feature extraction process"""
-        if not os.path.isdir(self.feature_params.save_root):
-            os.mkdir(self.feature_params.save_root)
+        if self.save:
+            if not os.path.isdir(self.feature_params.save_root):
+                os.mkdir(self.feature_params.save_root)
 
-        if os.path.exists(self.version_path):
-            print('feature version exists, deleting')
-            shutil.rmtree(self.version_path)
-        os.mkdir(self.version_path)
+            if os.path.exists(self.version_path):
+                print('feature version exists, deleting')
+                shutil.rmtree(self.version_path)
+            os.mkdir(self.version_path)
 
         audio_ids = list(self.audio_meta.keys())
 
         # data_list.remove('config.json')
-        with mp.Pool(processes=8) as pool:
+        with mp.pool.ThreadPool(processes=8) as pool:
             metas = list(tqdm.tqdm(
                 pool.imap_unordered(self.load_and_transform, audio_ids),
                 total=len(audio_ids),
@@ -70,24 +78,30 @@ class FeatureExtractor:
         for m in metas:
             if m is not None:
                 meta.update(m)
-
-        with open(os.path.join(
-                self.version_path, self.metadata_file), 'w') as f:
-            json.dump(meta, f, indent=4)
+        if self.save:
+            with open(os.path.join(
+                    self.version_path, self.metadata_file), 'w') as f:
+                json.dump(meta, f, indent=4)
+        else:
+            return meta
 
     def load_and_transform(self, audio_id):
         # .wav data containing nan values raise error. filtered by try and
         # except
-        audio_filename = self.audio_meta[audio_id]['filename']
-        try:
-            y, sr = librosa.load(os.path.join(
-                self.data_root,
-                audio_filename
-            ),
-                sr=self.feature_params.sr)
+        if self.save:
+            audio_filename = self.audio_meta[audio_id]['filename']
+            try:
+                y, sr = librosa.load(os.path.join(
+                    self.data_root,
+                    audio_filename
+                ),
+                    sr=self.feature_params.sr)
 
-        except librosa.util.exceptions.ParameterError:
-            return
+            except librosa.util.exceptions.ParameterError:
+                return
+        else:
+            audio_filename = self.audio_meta[audio_id]
+            y = self.audio_meta[audio_id]['data']
 
         if y.max() == y.min():
             return
@@ -95,11 +109,14 @@ class FeatureExtractor:
         y_feature = self.logmelspec(y)
 
         meta = copy.deepcopy(self.audio_meta[audio_id])
-        feature_filename = audio_filename.rstrip('.wav')
         if y_feature is not None:
-            np.save(os.path.join(self.version_path, feature_filename),
-                    y_feature)
-            meta['filename'] = feature_filename + '.npy'
+            if self.save:
+                feature_filename = audio_filename.rstrip('.wav')
+                np.save(os.path.join(self.version_path, feature_filename),
+                        y_feature)
+                meta['filename'] = feature_filename + '.npy'
+            else:
+                meta.update({'spectrogram': y_feature})
             return {audio_id: meta}
         return
 

@@ -57,24 +57,24 @@ def load_config(config_path, version):
     return result
 
 
-def create_data(config_list):
+def create_data(config_list, save: bool = True):
     """performs .wav data creation process"""
     from gen_data import DatasetGenerator
-    gen_data = DatasetGenerator(config_list.dataset_config)
-    gen_data.gen_dataset()
+    gen_data = DatasetGenerator(config_list.dataset_config, save=save)
+    return gen_data.gen_dataset()
 
 
-def extract_feature(config_list):
+def extract_feature(config_list, raw_meta=None):
     """performs feature extraction process"""
     from preprocessing import FeatureExtractor
-    extractor = FeatureExtractor(config_list)
-    extractor.extract()
+    extractor = FeatureExtractor(config_list, raw_meta=raw_meta)
+    return extractor.extract()
 
 
-def train(config_list):
+def train(config_list, feature_meta=None):
     """performs training process"""
     from train import Trainer
-    trainer = Trainer(config_list)
+    trainer = Trainer(config_list, feature_meta=feature_meta)
     trainer.fit()
 
 
@@ -105,12 +105,13 @@ def main():
     p.add_argument('-m', '--mode', type=str,
                    choices=['train', 'data', 'feature', 'test',
                             'all'],
-                   default='train')
+                   default='all')
     # default version structure: dataset_version.feature_version.train_version
-    p.add_argument('-v', '--version', type=str, default='1.1.3.0')
+    p.add_argument('-v', '--version', type=str, default='1.1.5.0')
     p.add_argument('--config_root', type=str, default='./assets')
     p.add_argument('--hop_time', type=float, default=.5)
     p.add_argument('-n', '--norm', type=bool, default=False)
+    p.add_argument('-s', '--save', type=bool, default=False)
     args = p.parse_args()
 
     parsed_ver = parse_ver(args.version)
@@ -122,9 +123,9 @@ def main():
     elif args.mode == 'train':
         train(config_list)
     else:  # if args.mode == 'all'
-        create_data(config_list)
-        extract_feature(config_list)
-        train(config_list)
+        raw_meta = create_data(config_list, args.save)
+        feature_meta = extract_feature(config_list, raw_meta)
+        train(config_list, feature_meta=feature_meta)
 
 
 if __name__ == '__main__':
