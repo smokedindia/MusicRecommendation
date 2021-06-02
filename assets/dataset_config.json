@@ -1,11 +1,13 @@
 {
   "roots": {
     "music_root": "database/GTZAN/genres_original",
+    "noise_root": "database/ESC50/audio",
     "save_root": "dataset_raw",
     "metadata_file": "metadata.json"
   },
   "links": {
-    "music_link": "http://opihi.cs.uvic.ca/sound/genres.tar.gz"
+    "music_link": "http://opihi.cs.uvic.ca/sound/genres.tar.gz",
+    "esc_50_link": "https://github.com/karoldvl/ESC-50/archive/master.zip"
   },
   "0": {
     "feature_size": 1,

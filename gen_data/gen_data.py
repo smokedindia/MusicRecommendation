@@ -15,9 +15,11 @@ from scipy.io.wavfile import write
 class DatasetParams:
     def __init__(self, dataset_config):
         self.music_root = dataset_config['music_root']
+        self.noise_root = dataset_config['noise_root']
         self.save_root = dataset_config['save_root']
 
         self.music_link = dataset_config['music_link']
+        self.esc_link = dataset_config['esc_50_link']
 
         self.version = dataset_config['version']
 
@@ -73,6 +75,41 @@ def make_database(dataset_param):
     for file in data_files:
         if file.endswith(".mf"):
             os.remove(os.path.join(dataset_path, file))
+
+    # download and parse noise dataset
+    noise_link = dataset_param.esc_link
+    noise_path = os.path.join("./", dataset_param.noise_root)
+    noise_files = os.path.join(noise_path, "/*")
+
+    if not os.path.isdir(noise_path) \
+            or not os.path.exists(noise_files):
+        """
+        Same as Dataset download. 
+        If there is no directory or no file in there, this algorithm starts
+        """
+        if not os.path.isfile("ESC-50-master.zip"):
+            print("Downloading noise dataset...")
+            wget.download(noise_link)
+            print("Finished Downloading noise dataset")
+
+        if os.path.isdir("./ESC-50-master/audio/*") \
+                and not os.path.exists("./ESC-50-master/audio/*"):
+            shutil.rmtree("./ESC-50-master")
+
+        if not os.path.isdir("./ESC-50-master"):
+            print("Unzipping Noise Data...")
+            os.system("unzip -q ESC-50-master.zip")
+            print("Unzip finished")
+
+        if os.path.isdir(noise_path) and \
+                not os.path.exists(noise_files):
+            print("There is no file in noise path")
+            shutil.rmtree(noise_path)
+
+        if not os.path.isdir(noise_path):
+            print("Start Copying Noise Database")
+            shutil.copytree('ESC-50-master/audio', noise_path)
+            print("Copying finished")
 
 
 class SnippetGenerator:
@@ -136,8 +173,13 @@ class SnippetGenerator:
         :return: random audio snippet
         """
         while True:
-            song_idx, start_sample, end_sample = random.choice(self.idx)
-            audio_snippet = self.audios[song_idx][start_sample: end_sample]
+            if len(self.idx) == 0:
+                audio_snippet = self.audios[
+                    random.randint(0, len(self.audios) - 1)
+                ]
+            else:
+                song_idx, start_sample, end_sample = random.choice(self.idx)
+                audio_snippet = self.audios[song_idx][start_sample: end_sample]
 
             if np.power(audio_snippet, 2).mean() > self.ENERGY_THRESHOLD:
                 return audio_snippet
@@ -162,6 +204,9 @@ class DatasetGenerator:
         if not os.path.isdir(self.dataset_param.music_root):
             make_database(self.dataset_param)
         dirs = os.listdir(self.dataset_param.music_root)
+
+        make_database(self.dataset_param)
+
         # music_paths = {}
         # for directory in dirs:
         #     music_paths[directory] = self.__get_all_paths(
@@ -187,6 +232,15 @@ class DatasetGenerator:
                 feature_size=self.dataset_param.feature_size,
                 hop_size=self.dataset_param.hop_size
             )
+
+        noise_paths = self.__get_all_paths(self.dataset_param.noise_root)
+        noise_audios = self.__load_audios(noise_paths, audio_type="ESC-50")
+        self.noise_snip_generator = SnippetGenerator(
+            audios=noise_audios,
+            sr=self.dataset_param.sr,
+            feature_size=self.dataset_param.feature_size,
+            hop_size=-1
+        )
 
         self.count = 0
         self.save = save
@@ -219,7 +273,7 @@ class DatasetGenerator:
         :return:
             same audio data 1
         """
-        return audio1
+        return audio1, None
 
     def mix_audio(self, audio1: np.ndarray):
         """
@@ -240,7 +294,13 @@ class DatasetGenerator:
 
         audio1_gain = 10 ** (snr / 20) * audio1_norm
 
-        return audio1_gain + noise, snr
+        if len(audio1_gain) > len(noise):
+            mixed_audio = audio1_gain
+            mixed_audio[:len(noise)] = noise
+        else:
+            mixed_audio = audio1_gain + noise
+
+        return mixed_audio, snr
 
     @staticmethod
     def __get_all_paths(directory):
@@ -281,8 +341,7 @@ class DatasetGenerator:
 
         meta = {}
         for audio_snr in music_ds:
-            audio, snr = audio_snr if self.dataset_param.snr_low is not None\
-                else audio_snr, None
+            audio, snr = audio_snr
             meta_key = str(self.count)
             meta[meta_key] = {
                 'filename': self.count,
@@ -293,7 +352,7 @@ class DatasetGenerator:
                 filename = str(self.count) + '.wav'
                 write(filename=os.path.join(self.save_root, filename),
                       rate=self.dataset_param.sr,
-                      data=audio)
+                      data=np.array(audio))
             else:
                 meta[meta_key].update({'data': audio})
 
