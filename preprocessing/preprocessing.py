@@ -93,7 +93,7 @@ class FeatureExtractor:
             try:
                 y, sr = librosa.load(os.path.join(
                     self.data_root,
-                    audio_filename
+                    str(audio_filename)
                 ),
                     sr=self.feature_params.sr)
 
