@@ -19,7 +19,7 @@ class DatasetParams:
         self.save_root = dataset_config['save_root']
 
         self.music_link = dataset_config['music_link']
-        self.esc_link = dataset_config['esc_50_link']
+        self.noise_link = dataset_config['noise_link']
 
         self.version = dataset_config['version']
 
@@ -94,7 +94,23 @@ def make_database(dataset_param):
         shutil.copytree(noise_unzip_folder, noise_path)
         print("Finished copying")
 
+    # download GTZAN and parse for future use
+#     if not os.path.exists(dataset_param.music_root):
+#         if not os.path.exists('./genres'):
+#             if not os.path.exists("./genres.tar.gz"):
+#                 print("Downloading GTZAN genre classification")
+#                 wget.download(dataset_param.music_link)
+#             os.system("tar -xf genres.tar.gz")
+#         shutil.copytree('./genres', dataset_param.music_root)
 
+#     # download and parse noise dataset
+#     if not os.path.exists(dataset_param.noise_root):
+#         if not os.path.exists("./ESC-50-master"):
+#             if not os.path.exists('ESC-50-master.zip'):
+#                 print('Downloading ESC-50 noise database')
+#                 wget.download(dataset_param.noise_link)
+#             os.system("unzip -q ESC-50-master.zip")
+#         shutil.copytree('ESC-50-master/audio', dataset_param.noise_root)
 
 
 class SnippetGenerator:
@@ -187,9 +203,11 @@ class DatasetGenerator:
                 shutil.rmtree(self.save_root)
             os.makedirs(self.save_root)
 
+
+
         make_database(self.dataset_param)
         dirs = os.listdir(self.dataset_param.music_root)
-
+        dirs = [valid_dir for valid_dir in dirs if valid_dir.find('mf') == -1]
         # music_paths = {}
         # for directory in dirs:
         #     music_paths[directory] = self.__get_all_paths(
@@ -217,7 +235,7 @@ class DatasetGenerator:
             )
 
         noise_paths = self.__get_all_paths(self.dataset_param.noise_root)
-        noise_audios = self.__load_audios(noise_paths, audio_type="ESC-50")
+        noise_audios = self.__load_audios(noise_paths, audio_type="noise")
         self.noise_snip_generator = SnippetGenerator(
             audios=noise_audios,
             sr=self.dataset_param.sr,
