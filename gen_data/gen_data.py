@@ -39,77 +39,62 @@ def make_database(dataset_param):
     """
     music_link = dataset_param.music_link
     dataset_path = os.path.join("./", dataset_param.music_root)
-    dataset_files = os.path.join(dataset_path, "/*")
-    if not os.path.isdir(dataset_path) or \
-            not os.path.exists(dataset_files):
-        """
-        2 cases. 
-        1. If there's no directory
-        2. If there is directory, but there's no file in there. 
-        """
-        if not os.path.isfile("./genres.tar.gz"):
-            print("Downloading Dataset...")
-            wget.download(music_link)
-            print("Download finished")
-
-        if os.path.isdir("./genres") and not os.path.exists("./genres/*"):
-            # When there is genres folder, but there's no file in there
-            shutil.rmtree("./genres")
-
-        if not os.path.isdir("./genres"):
-            # When there is no genre folder
-            print("Unzipping Dataset...")
-            os.system("tar -xf genres.tar.gz")
-            print("Unzip finished")
+    music_zip_file = "./genres.tar.gz"
+    music_unzip_folder = "./genres"
 
     if os.path.isdir(dataset_path) and \
-            not os.path.exists(dataset_files):
-        os.rmdir(dataset_path)
+        len(os.listdir(dataset_path)) == 0:
+        shutil.rmtree(dataset_path)
 
-    if not os.path.isdir("./" + dataset_param.music_root):
-        print("Start Copying to Database Directory...")
-        shutil.copytree('./genres', dataset_path)
-        print("Copy Finished")
+    if not os.path.isdir(dataset_path):
+        if os.path.isdir(music_unzip_folder) and \
+            len(os.listdir(music_unzip_folder)):
+            shutil.rmtree(music_unzip_folder)
+
+        if not os.path.isdir(music_unzip_folder):
+            if not os.path.isfile(music_zip_file):
+                print("Start downloading dataset...")
+                wget.download(music_link)
+                print("Finished downloading")
+            print("Start unzipping genre folder..")
+            os.system("tar -xf genres.tar.gz")
+            print("Finished unzipping genre folder")
+
+        print("Start copying data files...")
+        shutil.copytree(music_unzip_folder, dataset_path)
+        print("Finished copying data files")
 
     data_files = os.listdir(dataset_path)
     for file in data_files:
         if file.endswith(".mf"):
             os.remove(os.path.join(dataset_path, file))
 
-    # download and parse noise dataset
     noise_link = dataset_param.esc_link
     noise_path = os.path.join("./", dataset_param.noise_root)
-    noise_files = os.path.join(noise_path, "/*")
+    noise_zip_file = "./ESC-50-master.zip"
+    noise_unzip_folder = "./ESC-50-master/audio"
+    if os.path.isdir(noise_path) and \
+        len(os.listdir(noise_path)) == 0:
+        shutil.rmtree(dataset_path)
 
-    if not os.path.isdir(noise_path) \
-            or not os.path.exists(noise_files):
-        """
-        Same as Dataset download. 
-        If there is no directory or no file in there, this algorithm starts
-        """
-        if not os.path.isfile("ESC-50-master.zip"):
-            print("Downloading noise dataset...")
-            wget.download(noise_link)
-            print("Finished Downloading noise dataset")
+    if not os.path.isdir(noise_path):
+        if os.path.isdir(noise_unzip_folder) and \
+            len(os.listdir(noise_unzip_folder)):
+            shutil.rmtree(noise_unzip_folder)
 
-        if os.path.isdir("./ESC-50-master/audio/*") \
-                and not os.path.exists("./ESC-50-master/audio/*"):
-            shutil.rmtree("./ESC-50-master")
+        if not os.path.isdir(noise_unzip_folder):
+            if not os.path.isfile(noise_zip_file):
+                print("Start downloading noise...")
+                wget.download(noise_link)
+                print("Finished downloading")
+            print("Start unzipping noise folder...")
+            os.system("unzip -oq ESC-50-master")
+            print("Finished unzipping")
+        print("Start copying noise data...")
+        shutil.copytree(noise_unzip_folder, noise_path)
+        print("Finished copying")
 
-        if not os.path.isdir("./ESC-50-master"):
-            print("Unzipping Noise Data...")
-            os.system("unzip -q ESC-50-master.zip")
-            print("Unzip finished")
 
-        if os.path.isdir(noise_path) and \
-                not os.path.exists(noise_files):
-            print("There is no file in noise path")
-            shutil.rmtree(noise_path)
-
-        if not os.path.isdir(noise_path):
-            print("Start Copying Noise Database")
-            shutil.copytree('ESC-50-master/audio', noise_path)
-            print("Copying finished")
 
 
 class SnippetGenerator:
@@ -201,11 +186,9 @@ class DatasetGenerator:
                 print('path: %s exists, deleting' % self.save_root)
                 shutil.rmtree(self.save_root)
             os.makedirs(self.save_root)
-        if not os.path.isdir(self.dataset_param.music_root):
-            make_database(self.dataset_param)
-        dirs = os.listdir(self.dataset_param.music_root)
 
         make_database(self.dataset_param)
+        dirs = os.listdir(self.dataset_param.music_root)
 
         # music_paths = {}
         # for directory in dirs:
