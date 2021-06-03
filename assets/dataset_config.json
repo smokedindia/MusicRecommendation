@@ -33,6 +33,27 @@
     "snr_low": -10,
     "snr_high": 20
   },
+  "4": {
+    "feature_size": 6,
+    "sr": 16000,
+    "hop_size": 3,
+    "snr_low": 0,
+    "snr_high": 30
+  },
+  "5": {
+    "feature_size": 6,
+    "sr": 16000,
+    "hop_size": 3,
+    "snr_low": -20,
+    "snr_high": 10
+  },
+  "6": {
+    "feature_size": 6,
+    "sr": 16000,
+    "hop_size": 3,
+    "snr_low": -30,
+    "snr_high": 0
+  },
   "10": {
     "feature_size": 5,
     "sr": 16000,
