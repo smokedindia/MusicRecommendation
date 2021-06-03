@@ -41,17 +41,13 @@ def make_database(dataset_param):
     dataset_path = os.path.join("./", dataset_param.music_root)
     music_zip_file = "./genres.tar.gz"
     music_unzip_folder = "./genres"
-    #=========================================================================
     if os.path.isdir(dataset_path) and \
         len(os.listdir(dataset_path)) == 0:
         shutil.rmtree(dataset_path)
-    #-------------------------------------------------------------------------
     if not os.path.isdir(dataset_path):
-        # =========================================================================
         if os.path.isdir(music_unzip_folder) and \
             len(os.listdir(music_unzip_folder)) == 0:
             shutil.rmtree(music_unzip_folder)
-        # -------------------------------------------------------------------------
         if not os.path.isdir(music_unzip_folder):
             if not os.path.isfile(music_zip_file):
                 print("Start downloading dataset...")
@@ -70,19 +66,14 @@ def make_database(dataset_param):
     noise_zip_file = "./ESC-50-master.zip"
     noise_unzip_folder = "./ESC-50-master/audio"
 
-    # =========================================================================
     if os.path.isdir(noise_path) and \
         len(os.listdir(noise_path)) == 0:
         shutil.rmtree(dataset_path)
-    # -------------------------------------------------------------------------
-
 
     if not os.path.isdir(noise_path):
-    # =========================================================================
         if os.path.isdir(noise_unzip_folder) and \
             len(os.listdir(noise_unzip_folder)) == 0:
             shutil.rmtree(noise_unzip_folder)
-    # -------------------------------------------------------------------------
         if not os.path.isdir(noise_unzip_folder):
             if not os.path.isfile(noise_zip_file):
                 print("Start downloading noise...")
