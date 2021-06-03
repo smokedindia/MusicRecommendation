@@ -25,5 +25,12 @@
     "hop_size": 6,
     "snr_low": -20,
     "snr_high": 10
+  },
+  "3": {
+    "feature_size": 6,
+    "sr": 16000,
+    "hop_size": 3,
+    "snr_low": -10,
+    "snr_high": 20
   }
 }
