@@ -272,7 +272,7 @@ class DatasetGenerator:
 
         if len(audio1_gain) > len(noise):
             mixed_audio = audio1_gain
-            mixed_audio[:len(noise)] = noise
+            mixed_audio[:len(noise)] += noise
         else:
             mixed_audio = audio1_gain + noise
 
