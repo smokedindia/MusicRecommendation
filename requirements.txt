@@ -27,7 +27,7 @@ idna @ file:///home/conda/feedstock_root/build_artifacts/idna_1593328102638/work
 immutables==0.15
 importlib-metadata==4.0.1
 ipykernel==5.5.5
-	@@ -32,7 +24,6 @@ ipython-genutils==0.2.0
+ipython-genutils==0.2.0
 ipywidgets==7.6.3
 jedi==0.18.0
 Jinja2==3.0.1
@@ -35,7 +35,7 @@ joblib @ file:///home/conda/feedstock_root/build_artifacts/joblib_1612898609989/
 json5==0.9.5
 jsonschema==3.2.0
 jupyter==1.0.0
-	@@ -44,77 +35,54 @@ jupyterlab==3.0.16
+jupyterlab==3.0.16
 jupyterlab-pygments==0.1.2
 jupyterlab-server==2.5.2
 jupyterlab-widgets==1.0.0
