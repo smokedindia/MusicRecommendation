@@ -37,23 +37,65 @@ def make_database(dataset_param):
     If database/GTZAN/genres_original is not made,
     this function automatically generates this folder.
     """
-    # download GTZAN and parse for future use
-    if not os.path.exists(dataset_param.music_root):
-        if not os.path.exists('./genres'):
-            if not os.path.exists("./genres.tar.gz"):
-                print("Downloading GTZAN genre classification")
-                wget.download(dataset_param.music_link)
+    music_link = dataset_param.music_link
+    dataset_path = os.path.join("./", dataset_param.music_root)
+    music_zip_file = "./genres.tar.gz"
+    music_unzip_folder = "./genres"
+    #=========================================================================
+    if os.path.isdir(dataset_path) and \
+        len(os.listdir(dataset_path)) == 0:
+        shutil.rmtree(dataset_path)
+    #-------------------------------------------------------------------------
+    if not os.path.isdir(dataset_path):
+        # =========================================================================
+        if os.path.isdir(music_unzip_folder) and \
+            len(os.listdir(music_unzip_folder)) == 0:
+            shutil.rmtree(music_unzip_folder)
+        # -------------------------------------------------------------------------
+        if not os.path.isdir(music_unzip_folder):
+            if not os.path.isfile(music_zip_file):
+                print("Start downloading dataset...")
+                wget.download(music_link)
+                print("Finished downloading")
+            print("Start unzipping genre folder..")
             os.system("tar -xf genres.tar.gz")
-        shutil.copytree('./genres', dataset_param.music_root)
+            print("Finished unzipping genre folder")
 
-    # download and parse noise dataset
-    if not os.path.exists(dataset_param.noise_root):
-        if not os.path.exists("./ESC-50-master"):
-            if not os.path.exists('ESC-50-master.zip'):
-                print('Downloading ESC-50 noise database')
-                wget.download(dataset_param.noise_link)
-            os.system("unzip -q ESC-50-master.zip")
-        shutil.copytree('ESC-50-master/audio', dataset_param.noise_root)
+        print("Start copying data files...")
+        shutil.copytree(music_unzip_folder, dataset_path)
+        print("Finished copying data files")
+
+    noise_link = dataset_param.noise_link
+    noise_path = os.path.join("./", dataset_param.noise_root)
+    noise_zip_file = "./ESC-50-master.zip"
+    noise_unzip_folder = "./ESC-50-master/audio"
+
+    # =========================================================================
+    if os.path.isdir(noise_path) and \
+        len(os.listdir(noise_path)) == 0:
+        shutil.rmtree(dataset_path)
+    # -------------------------------------------------------------------------
+
+
+    if not os.path.isdir(noise_path):
+    # =========================================================================
+        if os.path.isdir(noise_unzip_folder) and \
+            len(os.listdir(noise_unzip_folder)) == 0:
+            shutil.rmtree(noise_unzip_folder)
+    # -------------------------------------------------------------------------
+        if not os.path.isdir(noise_unzip_folder):
+            if not os.path.isfile(noise_zip_file):
+                print("Start downloading noise...")
+                wget.download(noise_link)
+                print("Finished downloading")
+            print("Start unzipping noise folder...")
+            os.system("unzip -oq ESC-50-master")
+            print("Finished unzipping")
+        print("Start copying noise data...")
+        shutil.copytree(noise_unzip_folder, noise_path)
+        print("Finished copying")
+
+
 
 
 class SnippetGenerator:
@@ -145,13 +187,10 @@ class DatasetGenerator:
                 print('path: %s exists, deleting' % self.save_root)
                 shutil.rmtree(self.save_root)
             os.makedirs(self.save_root)
-        if not os.path.isdir(self.dataset_param.music_root):
-            make_database(self.dataset_param)
-        dirs = os.listdir(self.dataset_param.music_root)
-        # remove elements other than directories
-        dirs = [valid_dir for valid_dir in dirs if valid_dir.find('mf') == -1]
 
         make_database(self.dataset_param)
+        dirs = os.listdir(self.dataset_param.music_root)
+        dirs = [valid_dir for valid_dir in dirs if valid_dir.find('mf') == -1]
 
         # music_paths = {}
         # for directory in dirs:
