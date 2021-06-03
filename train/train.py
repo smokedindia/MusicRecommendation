@@ -67,7 +67,8 @@ class Trainer:
         #     lengths=[len_val_dataset, len_test_dataset], )
         train_loader = DataLoader(dataset=train_dataset,
                                   batch_size=self.batch_size,
-                                  shuffle=True)
+                                  shuffle=True,
+                                  num_workers=4)
         val_loader = DataLoader(dataset=rest_dataset,
                                 batch_size=self.batch_size,
                                 shuffle=False)
