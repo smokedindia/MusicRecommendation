@@ -71,10 +71,11 @@ def extract_feature(config_list, raw_meta=None):
     return extractor.extract()
 
 
-def train(config_list, feature_meta=None):
+def train(config_list, feature_meta=None, save_model=False):
     """performs training process"""
     from train import Trainer
-    trainer = Trainer(config_list, feature_meta=feature_meta)
+    trainer = Trainer(config_list, feature_meta=feature_meta,
+                      save_model=save_model)
     trainer.fit()
 
 
@@ -107,12 +108,12 @@ def main():
                             'all'],
                    default='all')
     # default version structure: dataset_version.feature_version.train_version
-    p.add_argument('-v', '--version', type=str, default='2.1.5.0')
+    p.add_argument('-v', '--version', type=str)
 
     p.add_argument('--config_root', type=str, default='./assets')
-    p.add_argument('--hop_time', type=float, default=.5)
     p.add_argument('-n', '--norm', type=bool, default=False)
     p.add_argument('-s', '--save', type=bool, default=False)
+    p.add_argument('--save_model', type=bool, default=False)
     args = p.parse_args()
 
     parsed_ver = parse_ver(args.version)
@@ -126,7 +127,8 @@ def main():
     else:  # if args.mode == 'all'
         raw_meta = create_data(config_list, args.save)
         feature_meta = extract_feature(config_list, raw_meta)
-        train(config_list, feature_meta=feature_meta)
+        train(config_list, feature_meta=feature_meta,
+              save_model=args.save_model)
 
 
 if __name__ == '__main__':

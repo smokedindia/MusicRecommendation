@@ -34,7 +34,7 @@ class DatasetParams:
 
 def make_database(dataset_param):
     """
-    If database/GTZAN/genres_original is not made,
+    If database is not made (music and noise),
     this function automatically generates this folder.
     """
     music_link = dataset_param.music_link
@@ -42,11 +42,11 @@ def make_database(dataset_param):
     music_zip_file = "./genres.tar.gz"
     music_unzip_folder = "./genres"
     if os.path.isdir(dataset_path) and \
-        len(os.listdir(dataset_path)) == 0:
+            len(os.listdir(dataset_path)) == 0:
         shutil.rmtree(dataset_path)
     if not os.path.isdir(dataset_path):
         if os.path.isdir(music_unzip_folder) and \
-            len(os.listdir(music_unzip_folder)) == 0:
+                len(os.listdir(music_unzip_folder)) == 0:
             shutil.rmtree(music_unzip_folder)
         if not os.path.isdir(music_unzip_folder):
             if not os.path.isfile(music_zip_file):
@@ -67,12 +67,12 @@ def make_database(dataset_param):
     noise_unzip_folder = "./ESC-50-master/audio"
 
     if os.path.isdir(noise_path) and \
-        len(os.listdir(noise_path)) == 0:
+            len(os.listdir(noise_path)) == 0:
         shutil.rmtree(dataset_path)
 
     if not os.path.isdir(noise_path):
         if os.path.isdir(noise_unzip_folder) and \
-            len(os.listdir(noise_unzip_folder)) == 0:
+                len(os.listdir(noise_unzip_folder)) == 0:
             shutil.rmtree(noise_unzip_folder)
         if not os.path.isdir(noise_unzip_folder):
             if not os.path.isfile(noise_zip_file):
@@ -85,8 +85,6 @@ def make_database(dataset_param):
         print("Start copying noise data...")
         shutil.copytree(noise_unzip_folder, noise_path)
         print("Finished copying")
-
-
 
 
 class SnippetGenerator:
@@ -182,15 +180,6 @@ class DatasetGenerator:
         make_database(self.dataset_param)
         dirs = os.listdir(self.dataset_param.music_root)
         dirs = [valid_dir for valid_dir in dirs if valid_dir.find('mf') == -1]
-
-        # music_paths = {}
-        # for directory in dirs:
-        #     music_paths[directory] = self.__get_all_paths(
-        #         os.path.join(self.dataset_param.music_root,
-        #                      directory))
-
-        # if self.TEST_MODE:
-        #     music_paths = music_paths[:20]
 
         music_audios = {}
         for genre in dirs:
@@ -319,13 +308,13 @@ class DatasetGenerator:
         for audio_snr in music_ds:
             audio, snr = audio_snr
             meta_key = str(self.count)
+            filename = meta_key + '.wav'
             meta[meta_key] = {
-                'filename': self.count,
+                'filename': filename,
                 'label': genre,
                 'snr': snr
             }
             if self.save:
-                filename = str(self.count) + '.wav'
                 write(filename=os.path.join(self.save_root, filename),
                       rate=self.dataset_param.sr,
                       data=np.array(audio))
