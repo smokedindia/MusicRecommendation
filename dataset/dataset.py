@@ -1,10 +1,8 @@
 import json
-import multiprocessing as mp
 import os
 
 import numpy as np
 import torch
-import tqdm
 from torch.utils.data import Dataset
 
 
@@ -12,24 +10,29 @@ class MusicRecommendationDataset(Dataset):
     def __init__(self, root, transform, feature_meta=None):
         self.transform = transform
         self.root = root
-
-        if feature_meta is not None:
-            self.feature_meta = feature_meta
-            self.ids = list(self.feature_meta.keys())
-        else:
-            with mp.pool.ThreadPool(processes=16) as pool:
-                self.data_list = list(
-                    tqdm.tqdm(pool.imap_unordered(self.load, self.ids),
-                              total=len(self.ids),
-                              desc='Loading data')
-                )
-            with open(os.path.join(self.root, 'metadata.json'), 'r') as f:
-                self.metadata = json.load(f)
-            self.ids = list(self.metadata.keys())
-
+        with open('dataset_feature/version_3.1/metadata.json', 'rb') as f:
+            self.metadata = json.load(f)
         self.genres = {'blues': 0, 'classical': 1, 'country': 2,
                        'disco': 3, 'hiphop': 4, 'jazz': 5, 'metal': 6,
                        'pop': 7, 'reggae': 8, 'rock': 9}
+
+        if feature_meta is not None:
+            self.ids = list(self.feature_meta.keys())
+        else:
+            self.ids = list(self.metadata.keys())
+            self.data_list = []
+            for key in self.ids:
+                self.data_list.append(self.load(key))
+            # with mp.pool.ThreadPool(processes=8) as pool:
+            #     self.data_list = list(
+            #         tqdm.tqdm(pool.imap_unordered(self.load, self.ids),
+            #                   total=len(self.ids),
+            #                   desc='Loading data')
+            #     )
+            with open(os.path.join(self.root, 'metadata.json'), 'r') as f:
+                self.metadata = json.load(f)
+            self.ids = list(self.metadata.keys())
+        self.feature_meta = feature_meta
 
     def load(self, id_element):
         spectrogram = np.load(
