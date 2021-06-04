@@ -101,7 +101,7 @@ class FeatureExtractor:
                 return
         else:
             audio_filename = self.audio_meta[audio_id]
-            y = self.audio_meta[audio_id]['data']
+            y = self.audio_meta[audio_id].pop('data')
 
         if y.max() == y.min():
             return
