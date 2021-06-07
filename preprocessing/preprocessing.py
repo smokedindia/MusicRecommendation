@@ -7,7 +7,7 @@ import shutil
 import librosa
 import numpy as np
 import tqdm
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 
 @dataclass
@@ -25,8 +25,27 @@ class FeatureParams:
             self.hop_length = feature_config.get('hop_length', None)
             self.n_mels = feature_config['n_mels']
             self.power = feature_config.get('power', 2.0)
+        elif self.feature_type == 'cqt':
+            self.feature_param = CQTParams(feature_config['hop_length'],
+                                           feature_config['n_bins'],
+                                           feature_config['bins_per_octave'],
+                                           feature_config['fmin_note'])
         else:
             raise ValueError('Invalid feature called')
+
+
+@dataclass
+class CQTParams:
+    hop_length: int
+    n_bins: int
+    bins_per_octave: int
+    fmin_note: str = 'C2'
+    fmin: float = librosa.note_to_hz(fmin_note)
+
+    def to_dict(self):
+        dict_attr = asdict(self)
+        del dict_attr['fmin_note']
+        return dict_attr
 
 
 class FeatureExtractor:
@@ -51,7 +70,9 @@ class FeatureExtractor:
                 self.audio_meta = json.load(f)
             self.save = True
 
-        # self.feature_func = options[self.feature_params.feature_type]
+        options = {'mel': self.melspec,
+                   'cqt': self.cqt}
+        self.feature_func = options[self.feature_params.feature_type]
 
     def extract(self):
         """performs feature extraction process"""
@@ -106,7 +127,7 @@ class FeatureExtractor:
         if y.max() == y.min():
             return
 
-        y_feature = self.logmelspec(y)
+        y_feature = self.feature_func(y)
 
         meta = copy.deepcopy(self.audio_meta[audio_id])
         if y_feature is not None:
@@ -120,7 +141,7 @@ class FeatureExtractor:
             return {audio_id: meta}
         return
 
-    def logmelspec(self, y):
+    def melspec(self, y):
         """transforms signal to mel spectrogram followed by log scaling
         operation """
         y_mel = librosa.feature.melspectrogram(
@@ -139,3 +160,17 @@ class FeatureExtractor:
             y_mel_clipped = np.clip(y_mel, 1e-7, None)
             y_mel_clipped_log = np.log10(y_mel_clipped)
         return y_mel_clipped_log
+
+    def cqt(self, y):
+        """transforms signal to constant Q transform spectrogram with log
+        scaling"""
+        y_cqt = np.abs(
+            librosa.cqt(y=y, sr=self.feature_params.sr,
+                        **self.feature_params.feature_param.to_dict())
+        )
+        if np.max(y_cqt) < 1e-7:
+            return None
+        else:
+            y_cqt_clip = np.clip(y_cqt, 1e-7, None)
+            y_cqt_clip_log = np.log(y_cqt_clip)
+            return y_cqt_clip_log

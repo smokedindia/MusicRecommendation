@@ -18,5 +18,13 @@
     "hop_length": 512,
     "n_mels": 128,
     "power": 2.0
+  },
+  "2": {
+    "feature_type": "cqt",
+    "sr": 16000,
+    "hop_length": 256,
+    "n_bins": 82,
+    "bins_per_octave": 12,
+    "fmin_note": "C2"
   }
 }
