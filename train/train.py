@@ -110,6 +110,9 @@ class Trainer:
         optimizer = torch.optim.Adadelta(model.parameters(),
                                          lr=self.learning_rate,
                                          weight_decay=self.weight_decay)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
+                                                    step_size=30,
+                                                    gamma=.1)
 
         prog_bar = tqdm.tqdm(desc='training in progress',
                              total=self.num_epochs,
@@ -148,7 +151,8 @@ class Trainer:
 
                         if stage == 'train':
                             loss.backward()
-                            optimizer.step()
+                            # optimizer.step()
+                            scheduler.step()
                     #     prog_bar2.update()
                     # prog_bar2.close()
 
