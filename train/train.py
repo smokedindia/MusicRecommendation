@@ -20,6 +20,7 @@ class TrainParams:
         self.batch_size = train_config['batch_size']
         self.learning_rate = train_config['learning_rate']
         self.weight_decay = train_config.get('weight_decay', 0)
+        self.gamma = train_config.get('gamma', 1)
 
 
 class Trainer:
@@ -33,6 +34,7 @@ class Trainer:
         self.batch_size = train_params.batch_size
         self.learning_rate = train_params.learning_rate
         self.weight_decay = train_params.weight_decay
+        self.gamma = train_params.gamma
 
         self.train_ver = config_list.train_config['version']
         self.dataset_ver = config_list.dataset_config['version']
@@ -112,7 +114,7 @@ class Trainer:
                                          weight_decay=self.weight_decay)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
                                                     step_size=30,
-                                                    gamma=.1)
+                                                    gamma=self.gamma)
 
         prog_bar = tqdm.tqdm(desc='training in progress',
                              total=self.num_epochs,
