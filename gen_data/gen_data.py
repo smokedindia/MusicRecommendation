@@ -251,7 +251,8 @@ class DatasetGenerator:
         noise = self.noise_snip_generator.get_random_snippet()
 
         snr = random.randrange(self.dataset_param.snr_low,
-                               self.dataset_param.snr_high + 1, self.dataset_param.snr_hop_size)
+                               self.dataset_param.snr_high + 1,
+                               self.dataset_param.snr_hop_size)
 
         rms1 = np.sqrt(np.sum(np.square(audio1) / len(audio1)))
         rms2 = np.sqrt(np.sum(np.square(noise) / len(noise)))
