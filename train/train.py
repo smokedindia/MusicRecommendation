@@ -153,7 +153,7 @@ class Trainer:
 
                         if stage == 'train':
                             loss.backward()
-                            # optimizer.step()
+                            optimizer.step()
                             scheduler.step()
                     #     prog_bar2.update()
                     # prog_bar2.close()
