@@ -19,43 +19,23 @@ class MusicRecommendationDataset(Dataset):
             self.ids = list(self.feature_meta.keys())
         else:
             with open(os.path.join(root, 'metadata.json'), 'rb') as f:
-                self.metadata = json.load(f)
-            self.ids = list(self.metadata.keys())
-            self.data_list = []
-            for key in self.ids:
-                self.data_list.append(self.load(key))
-            # with mp.pool.ThreadPool(processes=8) as pool:
-            #     self.data_list = list(
-            #         tqdm.tqdm(pool.imap_unordered(self.load, self.ids),
-            #                   total=len(self.ids),
-            #                   desc='Loading data')
-            #     )
-            with open(os.path.join(self.root, 'metadata.json'), 'r') as f:
-                self.metadata = json.load(f)
-            self.ids = list(self.metadata.keys())
-
-    def load(self, id_element):
-        spectrogram = np.load(
-            os.path.join(self.root,
-                         self.metadata[id_element]['filename'])
-        )
-        label = np.zeros(10)
-        label[self.genres[self.metadata[id_element]['label']]] = 1
-        data = {'spectrogram': spectrogram,
-                'label': label}
-        return data
+                self.feature_meta = json.load(f)
+            self.ids = list(self.feature_meta.keys())
 
     def __len__(self):
         return len(self.ids)
 
     def __getitem__(self, item):
-        if self.feature_meta is not None:
+        try:
             spectrogram = self.feature_meta[str(item)]['spectrogram']
-            label = np.zeros(10)
-            label[self.genres[self.feature_meta[str(item)]['label']]] = 1
-            data = {'spectrogram': spectrogram, 'label': label}
-        else:
-            data = self.load(id_element=self.ids[item])
+        except KeyError:
+            spectrogram = np.load(
+                os.path.join(self.root,
+                             self.feature_meta[str(item)]['filename'])
+            )
+        label = self.genres[self.feature_meta[str(item)]['label']]
+        data = {'spectrogram': spectrogram,
+                'label': label}
 
         if self.transform:
             data = self.transform(data)
@@ -68,4 +48,4 @@ class ToTensor:
         spectrogram = data['spectrogram']
         label = data['label']
         return {'spectrogram': torch.from_numpy(spectrogram).unsqueeze(0),
-                'label': label.astype(np.longlong)}
+                'label': label}

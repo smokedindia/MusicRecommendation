@@ -97,9 +97,9 @@ class Trainer:
         # retrieve batch input dimensions for model initialization
         sample_batch = next(iter(val_loader))
         dim = sample_batch.get('spectrogram').shape
-        # writer.add_image('sample training data',
-        #                  sample_batch['spectrogram'][:3],
-        #                  0)
+        writer.add_image('sample training data',
+                         sample_batch['spectrogram'][0],
+                         0)
         model = MusicRecommendationModel(n_bins=dim[-2], n_frames=dim[-1])
         criterion = nn.CrossEntropyLoss()
 
@@ -136,13 +136,12 @@ class Trainer:
 
                         data = batch.get('spectrogram').to(device)
                         labels = batch.get('label').to(device)
-                        labels = torch.max(labels, 1)[1].to(device)
-                        pred = model(data)
+                        preds = model(data)
 
-                        loss = criterion(pred, labels)
+                        loss = criterion(preds, labels)
                         running_loss += loss.item()
 
-                        preds = torch.max(torch.round(pred), 1)[1].to(device)
+                        preds = torch.max(torch.round(preds), 1)[1].to(device)
                         num_correct = (preds == labels).sum()
                         running_corr += num_correct
                         num_items += labels.shape[0]
