@@ -45,5 +45,11 @@
     "learning_rate": 1e-2,
     "weight_decay": 1e-4,
     "gamma": 0.5
+  },
+  "8": {
+    "num_epochs": 100,
+    "batch_size": 128,
+    "learning_rate": 5e-3,
+    "weight_decay": 1e-4
   }
 }
