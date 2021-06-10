@@ -86,6 +86,11 @@ def train(config_list, feature_meta=None, save_model=False):
     trainer.fit()
 
 
+def test(config_list):
+    from test import run_test
+    run_test(config_list, hop_size=2.5)
+
+
 def parse_ver(version_raw):
     """
 
@@ -182,6 +187,8 @@ def main():
         extract_feature(config_list)
     elif args.mode == 'train':
         train(config_list)
+    elif args.mode == 'test':
+        test(config_list)
     else:  # if args.mode == 'all'
         raw_meta = create_data(config_list, args.save)
         feature_meta = extract_feature(config_list, raw_meta)
