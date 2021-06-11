@@ -2,7 +2,8 @@ import sys
 import signal
 import os
 from PySide2 import QtGui
-from PySide2.QtCore import Qt, QUrl, QTimer
+from PySide2.QtCore import (Qt, QUrl, QTimer, QEvent, Signal, 
+  QObject)
 from PySide2.QtWidgets import (
   QWidget, QVBoxLayout, QHBoxLayout, QFileDialog, QApplication,
   QPushButton, QLabel, QMainWindow, QStyle, QSlider, QSizePolicy,
@@ -24,8 +25,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 import time
 
-sys.path.append(".")
-from qrangeslider import RangeSlider
+from .qrangeslider import RangeSlider
 
 gtzan = {'format': 's16le', 'acodec': 'pcm_s16le',
          'ac': '1', 'ar': '22050'}
@@ -36,6 +36,7 @@ class TrimWidget(QWidget):
     self.parent = parent
     self.filename = None
     self.duration = 0
+    self.audName = None
     self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
     self.vWid = QVideoWidget()
 
@@ -126,14 +127,18 @@ class TrimWidget(QWidget):
       .filter_('asetpts', 'PTS-STARTPTS')
     )
 
+    audName = "trimmed-({}-{})-{}.wav".format(start, end, current_time)
+
     ffmpeg.output(aud,
-                  "trimmed-({}-{})-{}.wav".format(start, end, current_time),
+                  audName,
                   acodec = gtzan['acodec'],
                   ac = gtzan['ac'],
                   ar = gtzan['ar']).run()
 
     if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
       self.mediaPlayer.pause()
+    self.audName = audName
+    self.parent.audName = audName
     self.parent.proceedToOut()
     return
 
@@ -177,7 +182,6 @@ class TrimWidget(QWidget):
       position = end
       if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
         self.mediaPlayer.pause()
-      # self.setPosition (position-1)
 
     self.positionSlider.setValue(position)
 
@@ -253,9 +257,9 @@ class OutWidget(QWidget):
     self.thumbnailPath = None
     self.thumbnail = QLabel()
     self.positionsLabel = None
-    self.predictionLabel = None
+    self.predictionLabel = QLabel()
     self.lo = QVBoxLayout()
-    self.outs = None
+    self.outs = QLabel("")
     self.loginButton = QPushButton(
       "Click here to log in to YouTube and get similar music recommendations"
       )
@@ -334,6 +338,12 @@ class OutWidget(QWidget):
       self.outs.setText(self.errText)
       browser.quit()
 
+  def onPrediction(self, prediction: int):
+    self.prediction = prediction
+    pred = self.gtzan_genre_map[prediction]
+    self.predictionLabel.setText("Predicted genre: {}".format(pred))
+    self.loginButton.setEnabled(True)
+
   def onShow (self):
     self.thumbnailPath = self.createThumbnail()
     self.im = io.imread(self.thumbnailPath)
@@ -347,12 +357,8 @@ class OutWidget(QWidget):
     self.positionsLabel = QLabel("Audio at %02d:%02d:%02d - %02d:%02d:%02d"%(
         st[0],st[1],st[2],en[0],en[1],en[2]
         ))
+    self.predictionLabel.setText("Please wait, model loading...")
 
-    self.prediction = self.getModelPrediction()
-    prediction = self.gtzan_genre_map[self.prediction]
-    self.predictionLabel = QLabel()
-    self.predictionLabel.setText("Predicted genre: {}".format(prediction))
-    self.outs = QLabel("")
 
     self.lo.addWidget(self.thumbnail)
     self.lo.addWidget(self.positionsLabel)
@@ -361,6 +367,7 @@ class OutWidget(QWidget):
     self.lo.addWidget(self.outs)
     self.lo.setAlignment(Qt.AlignCenter)
     self.setLayout(self.lo)
+    self.loginButton.setEnabled(False)
     self.loginButton.clicked.connect(self.login)
 
   def setFilename(self, filename):
@@ -382,6 +389,8 @@ class MainWindow(QMainWindow):
   def __init__(self, parent = None):
     super().__init__()
 
+    self.parent = parent
+
     self.importWid = QWidget(self)
     self.trimVidWid = TrimWidget(parent = self)
     
@@ -395,6 +404,8 @@ class MainWindow(QMainWindow):
     self.importButton.clicked.connect(self.call_file_dialog)
 
     self.filename = None
+
+    self.audName = None
 
     self.setCentralWidget(self.importWid)
     layout = QVBoxLayout(self)
@@ -418,6 +429,7 @@ class MainWindow(QMainWindow):
       self.trimVidWid.setVisible(False)
     self.setCentralWidget(self.outWid)
     self.outWid.onShow()
+    self.parent.audReadySignal.emit(self.audName)
     self.outWid.show()
 
   def call_file_dialog(self):
@@ -432,6 +444,9 @@ class MainWindow(QMainWindow):
       self.trimVidWid.setFilename(self.filename)
       self.outWid.setFilename(self.filename)
       self.proceedToTrim()
+
+  def setPrediction(self, prediction:int):
+    self.outWid.onPrediction(prediction)
 
   def cleanup(self):
     filelist = glob.glob(".tmp.*") + \
@@ -449,28 +464,29 @@ class MainWindow(QMainWindow):
     
 
 
-class UI():
-  def __init__(self):
-    app = QApplication([])
+class UI(QObject):
+  audReadySignal = Signal(str)
+  
+  def __init__(self, h):
+    super().__init__()
+    self.audReadySignal.connect(h)
 
-    self.wind = MainWindow()
+    self.app = QApplication([])
+    self.wind = MainWindow(parent = self)
     signal.signal(signal.SIGINT, self.wind.sigint_handler)
     timer = QTimer()
     timer.start(500)
     timer.timeout.connect(lambda: None)
     self.wind.resize(1200, 700)
     self.wind.show()
-    app.lastWindowClosed.connect(self.exitHandler)
-    app.aboutToQuit.connect(self.exitHandler)
+    self.app.lastWindowClosed.connect(self.exitHandler)
+    self.app.aboutToQuit.connect(self.exitHandler)
 
-    sys.exit(app.exec_())
+  def runApp(self):
+    sys.exit(self.app.exec_())
 
   def exitHandler(self):
     self.wind.cleanup()
 
-def main():
-  ui = UI()
-
-
-if __name__ == '__main__':
-  main()
+  def setPrediction(self, prediction: int):
+    self.wind.setPrediction(prediction)
