@@ -26,5 +26,11 @@
     "n_bins": 82,
     "bins_per_octave": 12,
     "fmin_note": "C2"
+  },
+  "10": {
+    "feature_type": "stft",
+    "sr": 16000,
+    "hop_length": 256,
+    "n_fft": 4096
   }
 }
