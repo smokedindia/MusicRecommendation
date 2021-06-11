@@ -276,8 +276,8 @@ class OutWidget(QWidget):
     self.loginDialog.show()
 
   def handleLogin(self):
-    l = self.loginDialog.textName
-    p = self.loginDialog.textPass
+    l = self.loginDialog.textName.text()
+    p = self.loginDialog.textPass.text()
     self.loginDialog.setVisible(False)
     self.outs.setText(self.loadText)
     self.outs.show()
@@ -285,6 +285,7 @@ class OutWidget(QWidget):
     browser = webdriver.Chrome()
     # browser.minimize_window()
     browser.get("https://youtube.com/audiolibrary")
+    time.sleep(2)
     try:
       self.loginButton.setVisible(False)
       login = browser.find_element_by_id("identifierId")
