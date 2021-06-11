@@ -105,10 +105,10 @@ def call_api():
     """
     specifies calls to API.
 
-    Args:
-        mode: str
-            if mode=="init" call the UI main window
-            if mode=="output" call the UI to show the output
+    Multithreading is a bit messy.
+    The control flow goes into thread t specified
+    
+
     """
     from ui import UI, qrangeslider
     import threading
@@ -139,7 +139,7 @@ def call_api():
             """
             # prediction = model.do_predict(name)
 
-            
+
             api.setPrediction(prediction)    
         l.release()
 
