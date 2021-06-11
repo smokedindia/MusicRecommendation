@@ -44,8 +44,8 @@ class TrimWidget(QWidget):
     self.playButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
     self.playButton.clicked.connect(self.play)
 
-    self.importButton = QPushButton("Replace video...")
-    self.importButton.clicked.connect(self.open)
+    self.restartButton = QPushButton("Start over")
+    self.restartButton.clicked.connect(self.restart)
 
     self.doneButton = QPushButton("Trim and extract audio")
     self.doneButton.clicked.connect(self.trim)
@@ -67,7 +67,7 @@ class TrimWidget(QWidget):
     self.controlLayout = QHBoxLayout()
     self.controlLayout.setContentsMargins(0, 0, 0, 0)
     self.controlLayout.addWidget(self.playButton)
-    self.controlLayout.addWidget(self.importButton)
+    self.controlLayout.addWidget(self.restartButton)
     self.controlLayout.addWidget(self.doneButton)
 
     self.lo = QVBoxLayout()
@@ -87,20 +87,11 @@ class TrimWidget(QWidget):
     self.mediaPlayer.positionChanged.connect(self.positionChanged)
     self.mediaPlayer.durationChanged.connect(self.durationChanged)
 
-  def open(self):
-    prev = self.filename
-    self.filename = QFileDialog.getOpenFileName(
-      self,
-      "Open Video File",
-      os.getcwd(),
-      filter = "Video Files [*.mp4, *.mov, *.avi, *.mkv, *.3gp, *.webm]\
-       (*.mp4 *.mov *.avi *.mkv *.3gp *.webm)"
-      )[0]
+  def restart(self):
     if self.filename is not None and self.filename != '':
-      self.updateRange()
-      self.setFilename(self.filename)
-    else:
-      self.filename = prev
+      self.trimSlider.setRangeLimit(0, int(self.duration))
+      self.trimSlider.setRange(0, int(self.duration))
+      self.setTrimTimeLabel()
     return
 
   def updateRange(self, a = 0):
