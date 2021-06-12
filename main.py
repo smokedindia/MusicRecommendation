@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import sys
 
 from dataclasses import dataclass
 
@@ -8,11 +9,17 @@ DATASET_CONFIG_FILE = 'dataset_config.json'
 TRAIN_CONFIG_FILE = 'train_config.json'
 FEATURE_CONFIG_FILE = 'feature_config.json'
 TEST_CONFIG_FILE = 'test_config.json'
+api = None
+audio_name = None
+
+GENRES = {'blues': 0, 'classical': 1, 'country': 2,
+          'disco': 3, 'hiphop': 4, 'jazz': 5, 'metal': 6,
+          'pop': 7, 'reggae': 8, 'rock': 9}
 
 
 @dataclass()
 class Configs:
-    def __init__(self, config_root, versions, **_extras):
+    def __init__(self, config_root, versions, _extras):
         self.dataset_config = load_config(
             os.path.join(config_root, DATASET_CONFIG_FILE), versions[0])
         try:
@@ -101,11 +108,62 @@ def parse_ver(version_raw):
     return version_list
 
 
+def call_api():
+    """
+    specifies calls to API.
+
+    Multithreading is a bit messy.
+    The control flow goes into thread t specified
+    
+
+    """
+    from ui import UI, qrangeslider
+    import threading
+    import time
+    l = threading.Lock()
+    global api
+    global audio_name
+
+    def store_name(s: str):
+        # s is the filename of .wav file
+        global audio_name
+        audio_name = s
+        l.release()
+        return
+
+    def exit_handler():
+        exit()
+
+    api = UI(h=store_name, lock=l)  # h is called when user trims
+
+    def get_model_prediction():
+        global audio_name
+        global api
+        l.acquire()
+
+        if audio_name is not None:
+            """
+            Call the model in here.
+            I know, not the best isolation, but could not
+            find a better solution for asynchronous problem
+            """
+            # prediction = model.do_predict(name)
+
+            api.setPrediction(prediction)
+
+        l.release()
+
+    t = threading.Thread(target=get_model_prediction)
+    l.acquire()
+    t.start()
+    api.runApp()
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('-m', '--mode', type=str,
                    choices=['train', 'data', 'feature', 'test',
-                            'all'],
+                            'all', 'exec'],
                    default='all')
     # default version structure: dataset_version.feature_version.train_version
     p.add_argument('-v', '--version', type=str)
