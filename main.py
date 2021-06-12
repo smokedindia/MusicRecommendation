@@ -12,6 +12,11 @@ TEST_CONFIG_FILE = 'test_config.json'
 api = None
 audio_name = None
 
+GENRES = {'blues': 0, 'classical': 1, 'country': 2,
+          'disco': 3, 'hiphop': 4, 'jazz': 5, 'metal': 6,
+          'pop': 7, 'reggae': 8, 'rock': 9}
+
+
 @dataclass()
 class Configs:
     def __init__(self, config_root, versions, _extras):
@@ -102,6 +107,7 @@ def parse_ver(version_raw):
             'dataset.feature.train.test')
     return version_list
 
+
 def call_api():
     """
     specifies calls to API.
@@ -128,8 +134,8 @@ def call_api():
     def exit_handler():
         exit()
 
-    api = UI(h = store_name, lock = l) # h is called when user trims
-    
+    api = UI(h=store_name, lock=l)  # h is called when user trims
+
     def get_model_prediction():
         global audio_name
         global api
@@ -145,20 +151,19 @@ def call_api():
 
             api.setPrediction(prediction)
 
-
         l.release()
 
-    t = threading.Thread(target = get_model_prediction)
+    t = threading.Thread(target=get_model_prediction)
     l.acquire()
     t.start()
     api.runApp()
-    
+
 
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('-m', '--mode', type=str,
                    choices=['train', 'data', 'feature', 'test',
-                            'all'],
+                            'all', 'exec'],
                    default='all')
     # default version structure: dataset_version.feature_version.train_version
     p.add_argument('-v', '--version', type=str)
