@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import sys
 
 from dataclasses import dataclass
 
@@ -124,7 +125,10 @@ def call_api():
         l.release()
         return
 
-    api = UI(h = store_name) # h is called when user trims
+    def exit_handler():
+        exit()
+
+    api = UI(h = store_name, lock = l) # h is called when user trims
     
     def get_model_prediction():
         global audio_name
@@ -139,8 +143,9 @@ def call_api():
             """
             # prediction = model.do_predict(name)
 
+            api.setPrediction(prediction)
 
-            api.setPrediction(prediction)    
+
         l.release()
 
     t = threading.Thread(target = get_model_prediction)

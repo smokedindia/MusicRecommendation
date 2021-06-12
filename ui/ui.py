@@ -386,10 +386,11 @@ class OutWidget(QWidget):
     return random.randint(0, 9)
 
 class MainWindow(QMainWindow):
-  def __init__(self, parent = None):
+  def __init__(self, parent = None, lock = None):
     super().__init__()
 
     self.parent = parent
+    self.lock = lock
 
     self.importWid = QWidget(self)
     self.trimVidWid = TrimWidget(parent = self)
@@ -456,33 +457,35 @@ class MainWindow(QMainWindow):
         os.remove(file)
       except:
         continue
+    if self.lock.locked():
+      self.lock.release()
     QApplication.quit()
   
   def sigint_handler(self, signum, frame):
-    self.cleanup()
     print()
+    self.cleanup()
     
 
 
 class UI(QObject):
   audReadySignal = Signal(str)
   
-  def __init__(self, h):
+  def __init__(self, h, lock):
     super().__init__()
     self.audReadySignal.connect(h)
 
     self.app = QApplication([])
-    self.wind = MainWindow(parent = self)
-    signal.signal(signal.SIGINT, self.wind.sigint_handler)
-    timer = QTimer()
-    timer.start(500)
-    timer.timeout.connect(lambda: None)
+    self.wind = MainWindow(parent = self, lock = lock)
     self.wind.resize(1200, 700)
     self.wind.show()
     self.app.lastWindowClosed.connect(self.exitHandler)
     self.app.aboutToQuit.connect(self.exitHandler)
 
   def runApp(self):
+    signal.signal(signal.SIGINT, self.wind.sigint_handler)
+    timer = QTimer()
+    timer.start(500)
+    timer.timeout.connect(lambda: None)
     sys.exit(self.app.exec_())
 
   def exitHandler(self):
