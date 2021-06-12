@@ -13,7 +13,7 @@ audio_name = None
 
 @dataclass()
 class Configs:
-    def __init__(self, config_root, versions, `_extras):
+    def __init__(self, config_root, versions, _extras):
         self.dataset_config = load_config(
             os.path.join(config_root, DATASET_CONFIG_FILE), versions[0])
         try:
