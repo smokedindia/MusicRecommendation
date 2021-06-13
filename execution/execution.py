@@ -30,24 +30,28 @@ def audio_to_tensors(user_input: np.ndarray,
     pad_size = feature_size // 2
 
     y_feature = extractor.feature_func(user_input)
-    y_feature_padded = np.pad(y_feature, ((0, 0), (feature_size - pad_size, feature_size)),
+    y_feature_padded = np.pad(y_feature, (
+        (0, 0), (feature_size - pad_size, feature_size)),
                               'constant', constant_values=0)
     n_input = int(y_feature.shape[1] // hop_size) + 1
 
     result = np.empty((n_input, y_feature.shape[0], feature_size))
     for i in range(n_input):
-        spec_input = y_feature_padded[:, i * hop_size: i * hop_size + feature_size]
+        hop_frame = i * hop_size
+        spec_input = y_feature_padded[:, hop_frame: hop_frame + feature_size]
         scaler = StandardScaler()
         spec_input = scaler.fit_transform(spec_input)
         result[i, :, :] = spec_input
 
-    return torch.from_numpy(result).type(torch.FloatTensor).to('cuda').unsqueeze(1)
+    return torch.from_numpy(result).type(torch.FloatTensor).to(
+        'cuda').unsqueeze(1)
 
 
 def divide_into_batches(model_input: torch.Tensor,
                         batch_size: int = 64) -> list:
     """
-    divides input tensors to specified minibatch size to prevent memory overflow
+    divides input tensors to specified minibatch size to prevent
+    memory overflow
     :param model_input: group of tensors for model input
     :param batch_size: batch size less than GPU overload
     :return:
@@ -65,7 +69,7 @@ def divide_into_batches(model_input: torch.Tensor,
 
 def get_prediction(user_input: np.ndarray,
                    config_list: Configs,
-                   hop_size: float=.5) -> int:
+                   hop_size: float = .5) -> int:
     model_path = os.path.join('models', config_list.version_all, 'model.ckpt')
     model_input = audio_to_tensors(user_input, config_list, hop_size)
     model_input_batches = divide_into_batches(model_input)
@@ -73,7 +77,8 @@ def get_prediction(user_input: np.ndarray,
 
     state_dict = torch.load(model_path)
     model = torch.nn.DataParallel(
-        MusicRecommendationModel(n_bins=model_dims[-2],n_frames=model_dims[-2])
+        MusicRecommendationModel(n_bins=model_dims[-2],
+                                 n_frames=model_dims[-2])
     )
     model.load_state_dict(state_dict)
 
