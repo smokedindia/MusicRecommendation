@@ -51,6 +51,7 @@ class CQTParams:
         del dict_attr['fmin_note']
         return dict_attr
 
+
 @dataclass
 class STFTParams:
     hop_length: int
@@ -63,7 +64,7 @@ class STFTParams:
 
 class FeatureExtractor:
     def __init__(self, config_list, metadata_file='metadata.json',
-                 raw_meta=None, user_input: np.ndarray=None):
+                 raw_meta=None, user_input=False):
         self.data_root = 'dataset_raw/version_%s' % \
                          config_list.dataset_config['version']
         self.feature_params = FeatureParams(config_list.feature_config)
@@ -75,7 +76,7 @@ class FeatureExtractor:
         self.metadata_file = metadata_file
 
         self.user_input = user_input
-        if self.user_input is None:
+        if not self.user_input:
             if raw_meta is not None:
                 self.audio_meta = raw_meta
                 self.feature_meta = {}
