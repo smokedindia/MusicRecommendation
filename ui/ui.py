@@ -28,7 +28,7 @@ import time
 from .qrangeslider import RangeSlider
 
 gtzan = {'format': 's16le', 'acodec': 'pcm_s16le',
-         'ac': '1', 'ar': '22050'}
+         'ac': '1', 'ar': '16000'}
 
 class TrimWidget(QWidget):
   def __init__(self, parent = None):
@@ -401,6 +401,11 @@ class MainWindow(QMainWindow):
       "Welcome! To start, click 'Import Video...' button below",
       alignment=Qt.AlignCenter
       )
+    self.importLabel.setStyleSheet("""
+        background-color: #232323;
+        color: #FFFFFF;
+        font-size: 24px;
+      """)
     self.importButton = QPushButton("Import video...")
     self.importButton.clicked.connect(self.call_file_dialog)
 
@@ -480,6 +485,13 @@ class UI(QObject):
     self.wind.show()
     self.app.lastWindowClosed.connect(self.exitHandler)
     self.app.aboutToQuit.connect(self.exitHandler)
+    try:
+      f = open ("stylesheet.qss", "r")
+    except:
+      f = open ("ui/stylesheet.qss", "r")
+    _style = f.read()
+    self.app.setStyleSheet(_style)
+    f.close()
 
   def runApp(self):
     signal.signal(signal.SIGINT, self.wind.sigint_handler)
