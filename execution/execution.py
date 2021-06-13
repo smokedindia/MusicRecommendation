@@ -1,12 +1,14 @@
 import os
 
+import librosa
 import numpy as np
 import torch
-from sklearn.preprocessing import StandardScaler
-from main import Configs
-from preprocessing import FeatureExtractor
-from model import MusicRecommendationModel
 from scipy import stats
+from sklearn.preprocessing import StandardScaler
+
+from main import Configs
+from model import MusicRecommendationModel
+from preprocessing import FeatureExtractor
 
 
 def audio_to_tensors(user_input: np.ndarray,
@@ -67,11 +69,12 @@ def divide_into_batches(model_input: torch.Tensor,
     return batches
 
 
-def get_prediction(user_input: np.ndarray,
+def get_prediction(user_input: str,
                    config_list: Configs,
                    hop_size: float = .5) -> int:
     model_path = os.path.join('models', config_list.version_all, 'model.ckpt')
-    model_input = audio_to_tensors(user_input, config_list, hop_size)
+    y, sr = librosa.load(user_input, sr=16000)
+    model_input = audio_to_tensors(y, config_list, hop_size)
     model_input_batches = divide_into_batches(model_input)
     model_dims = model_input.shape
 
