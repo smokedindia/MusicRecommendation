@@ -8,6 +8,7 @@ import librosa
 import numpy as np
 import tqdm
 from dataclasses import dataclass, asdict
+from sklearn import preprocessing
 
 
 @dataclass
@@ -129,6 +130,9 @@ class FeatureExtractor:
 
         y_feature = self.feature_func(y)
 
+        scaler = preprocessing.StandardScaler()
+        y_feature_norm = scaler.fit_transform(y_feature)
+
         meta = copy.deepcopy(self.audio_meta[audio_id])
         if y_feature is not None:
             if self.save:
@@ -137,7 +141,7 @@ class FeatureExtractor:
                         y_feature)
                 meta['filename'] = feature_filename + '.npy'
             else:
-                meta.update({'spectrogram': y_feature})
+                meta.update({'spectrogram': y_feature_norm})
             return {audio_id: meta}
         return
 
