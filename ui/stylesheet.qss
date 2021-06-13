@@ -1,0 +1,10 @@
+QLabel {
+  font-size: 20px;
+}
+
+QPushButton {
+  font-size: 20px;
+  border: solid;
+  border-width: 1px;
+  border-color: #404040;
+}
