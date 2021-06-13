@@ -31,6 +31,9 @@ class FeatureParams:
                                            feature_config['n_bins'],
                                            feature_config['bins_per_octave'],
                                            feature_config['fmin_note'])
+        elif self.feature_type == 'stft':
+            self.feature_param = STFTParams(feature_config['hop_length'],
+                                            feature_config['n_fft'])
         else:
             raise ValueError('Invalid feature called')
 
@@ -46,6 +49,15 @@ class CQTParams:
     def to_dict(self):
         dict_attr = asdict(self)
         del dict_attr['fmin_note']
+        return dict_attr
+
+@dataclass
+class STFTParams:
+    hop_length: int
+    n_fft: int
+
+    def to_dict(self):
+        dict_attr = asdict(self)
         return dict_attr
 
 
@@ -72,7 +84,8 @@ class FeatureExtractor:
             self.save = True
 
         options = {'mel': self.melspec,
-                   'cqt': self.cqt}
+                   'cqt': self.cqt,
+                   'stft': self.stft}
         self.feature_func = options[self.feature_params.feature_type]
 
     def extract(self):
@@ -178,3 +191,14 @@ class FeatureExtractor:
             y_cqt_clip = np.clip(y_cqt, 1e-7, None)
             y_cqt_clip_log = np.log(y_cqt_clip)
             return y_cqt_clip_log
+
+    def stft(self, y):
+        y_stft = librosa.stft(y=y,
+                              **self.feature_params.feature_param.to_dict()
+                              )
+        if np.max(y_stft) < 1e-7:
+            return None
+        else:
+            y_stft_clip = np.clip(y_stft, 1e-7, None)
+            y_stft_clip_log = np.log(y_stft_clip)
+            return y_stft_clip_log
