@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import sys
+from execution import get_prediction
 
 from dataclasses import dataclass
 
@@ -108,7 +109,7 @@ def parse_ver(version_raw):
     return version_list
 
 
-def call_api():
+def call_api(config_list: Configs):
     """
     specifies calls to API.
 
@@ -147,7 +148,7 @@ def call_api():
             I know, not the best isolation, but could not
             find a better solution for asynchronous problem
             """
-            # prediction = model.do_predict(name)
+            prediction = get_prediction(audio_name, config_list=config_list)
 
             api.setPrediction(prediction)
 
