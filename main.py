@@ -1,10 +1,10 @@
 import argparse
 import json
 import os
-import sys
-from execution import get_prediction
 
 from dataclasses import dataclass
+
+from execution import get_prediction
 
 DATASET_CONFIG_FILE = 'dataset_config.json'
 TRAIN_CONFIG_FILE = 'train_config.json'
@@ -118,9 +118,8 @@ def call_api(config_list: Configs):
     
 
     """
-    from ui import UI, qrangeslider
+    from ui import UI
     import threading
-    import time
     l = threading.Lock()
     global api
     global audio_name
@@ -183,6 +182,8 @@ def main():
         extract_feature(config_list)
     elif args.mode == 'train':
         train(config_list)
+    elif args.mode == 'exec':
+        call_api(config_list)
     else:  # if args.mode == 'all'
         raw_meta = create_data(config_list, args.save)
         feature_meta = extract_feature(config_list, raw_meta)
