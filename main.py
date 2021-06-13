@@ -4,7 +4,6 @@ import os
 
 from dataclasses import dataclass
 
-from execution import get_prediction
 
 DATASET_CONFIG_FILE = 'dataset_config.json'
 TRAIN_CONFIG_FILE = 'train_config.json'
@@ -87,6 +86,10 @@ def train(config_list, feature_meta=None, save_model=False):
     trainer.fit()
 
 
+def execute(config_list):
+    call_api(config_list)
+
+
 def parse_ver(version_raw):
     """
 
@@ -110,6 +113,7 @@ def parse_ver(version_raw):
 
 
 def call_api(config_list: Configs):
+    from execution import get_prediction
     """
     specifies calls to API.
 
@@ -164,9 +168,9 @@ def main():
     p.add_argument('-m', '--mode', type=str,
                    choices=['train', 'data', 'feature', 'test',
                             'all', 'exec'],
-                   default='all')
+                   default='exec')
     # default version structure: dataset_version.feature_version.train_version
-    p.add_argument('-v', '--version', type=str)
+    p.add_argument('-v', '--version', type=str, default='16.1.5.0')
 
     p.add_argument('--config_root', type=str, default='./assets')
     p.add_argument('-n', '--norm', type=bool, default=False)
