@@ -187,7 +187,7 @@ def main():
     elif args.mode == 'train':
         train(config_list)
     elif args.mode == 'exec':
-        call_api(config_list)
+        execute(config_list)
     else:  # if args.mode == 'all'
         raw_meta = create_data(config_list, args.save)
         feature_meta = extract_feature(config_list, raw_meta)
