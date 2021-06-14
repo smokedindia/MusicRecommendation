@@ -63,7 +63,7 @@ class STFTParams:
 
 class FeatureExtractor:
     def __init__(self, config_list, metadata_file='metadata.json',
-                 raw_meta=None):
+                 raw_meta=None, test=False):
         self.data_root = 'dataset_raw/version_%s' % \
                          config_list.dataset_config['version']
         self.feature_params = FeatureParams(config_list.feature_config)
@@ -73,15 +73,18 @@ class FeatureExtractor:
                                          'version_%s' % version)
         # options = {'mel': self.logmelspec}
         self.metadata_file = metadata_file
-
-        if raw_meta is not None:
-            self.audio_meta = raw_meta
-            self.feature_meta = {}
-            self.save = False
-        else:
-            with open(os.path.join(self.data_root, metadata_file), 'r') as f:
-                self.audio_meta = json.load(f)
-            self.save = True
+        self.test = test
+        if not self.test:
+            if raw_meta is not None:
+                self.audio_meta = raw_meta
+                self.feature_meta = {}
+                self.save = False
+            else:
+                with open(os.path.join(self.data_root,
+                                       metadata_file),
+                          'r') as f:
+                    self.audio_meta = json.load(f)
+                self.save = True
 
         options = {'mel': self.melspec,
                    'cqt': self.cqt,
