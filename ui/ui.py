@@ -265,7 +265,8 @@ class OutWidget(QWidget):
         self.lo = QVBoxLayout()
         self.outs = QLabel("")
         self.loginButton = QPushButton(
-            "Click here to log in to YouTube and get similar music recommendations"
+            "Click here to log in to YouTube and get similar music "
+            "recommendations "
         )
         self.loginDialog = None
         self.gtzan_genre_map = {0: "blues", 1: "classical",
@@ -434,7 +435,8 @@ class MainWindow(QMainWindow):
 
     def proceedToTrim(self):
         self.setWindowTitle("Trim Video")
-        if self.importWid and self.importWid is not None and self.importWid.isVisible():
+        if self.importWid and self.importWid is not None\
+                and self.importWid.isVisible():
             self.importWid.setVisible(False)
         self.setCentralWidget(self.trimVidWid)
         self.trimVidWid.show()
