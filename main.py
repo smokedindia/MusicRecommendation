@@ -17,7 +17,7 @@ GENRES = {'blues': 0, 'classical': 1, 'country': 2,
           'pop': 7, 'reggae': 8, 'rock': 9}
 
 
-@dataclass()
+@dataclass
 class Configs:
     def __init__(self, config_root, versions):
         self.dataset_config = load_config(
