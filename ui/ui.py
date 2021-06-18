@@ -1,29 +1,28 @@
-import sys
-import signal
+import glob
 import os
+import random
+import signal
+import sys
+import time
+from datetime import datetime
+
+import ffmpeg  # ffmpeg-python, NOT ffmpeg, NOT python-ffmpeg!!!
+import librosa
+import matplotlib.pyplot as plt
 from PySide2 import QtGui
-from PySide2.QtCore import (Qt, QUrl, QTimer, QEvent, Signal,
+from PySide2.QtCore import (Qt, QUrl, QTimer, Signal,
                             QObject)
-from PySide2.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFileDialog, QApplication,
-    QPushButton, QLabel, QMainWindow, QStyle, QSlider, QSizePolicy,
-    QDialog, QLineEdit
-)
 from PySide2.QtMultimedia import QMediaContent, QMediaPlayer
 from PySide2.QtMultimediaWidgets import QVideoWidget
+from PySide2.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QFileDialog, QApplication,
+    QPushButton, QLabel, QMainWindow, QStyle, QSlider, QDialog, QLineEdit
+)
 from moviepy import editor
-import ffmpeg  # ffmpeg-python, NOT ffmpeg, NOT python-ffmpeg!!!
-import matplotlib.pyplot as plt
-import librosa
-from datetime import datetime
-from skimage import io
-from skimage.transform import resize
-import glob
-import random
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-import time
+from skimage import io
+from skimage.transform import resize
 
 from .qrangeslider import RangeSlider
 
@@ -166,7 +165,7 @@ class TrimWidget(QWidget):
         (ht, mt, st) = self.pos_to_hms(1000 * end)
         self.trimTime.setText(
             "Selected Interval: %02d:%02d:%02d - %02d:%02d:%02d" % (
-            h, m, s, ht, mt, st)
+                h, m, s, ht, mt, st)
         )
 
     def positionChanged(self, position):
@@ -435,7 +434,7 @@ class MainWindow(QMainWindow):
 
     def proceedToTrim(self):
         self.setWindowTitle("Trim Video")
-        if self.importWid and self.importWid is not None\
+        if self.importWid and self.importWid is not None \
                 and self.importWid.isVisible():
             self.importWid.setVisible(False)
         self.setCentralWidget(self.trimVidWid)
