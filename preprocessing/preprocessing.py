@@ -21,11 +21,11 @@ class FeatureParams:
 
         self.feature_param = None
         if self.feature_type == 'mel':
-            self.n_fft = feature_config['n_fft']
-            self.win_length = feature_config.get('win_length', None)
-            self.hop_length = feature_config.get('hop_length', None)
-            self.n_mels = feature_config['n_mels']
-            self.power = feature_config.get('power', 2.0)
+            self.feature_param = MelParams(feature_config['n_fft'],
+                                           feature_config.get('win_length', None),
+                                           feature_config.get('hop_length', None),
+                                           feature_config['n_mels'],
+                                           feature_config.get('power', 2.0))
         elif self.feature_type == 'cqt':
             self.feature_param = CQTParams(feature_config['hop_length'],
                                            feature_config['n_bins'],
@@ -36,7 +36,17 @@ class FeatureParams:
                                             feature_config['n_fft'])
         else:
             raise ValueError('Invalid feature called')
+@dataclass
+class MelParams:
+    n_fft: int
+    win_length: int
+    hop_length: int
+    n_mels: int
+    power : int
 
+    def to_dict(self):
+        dict_attr = asdict(self)
+        return dict_attr
 
 @dataclass
 class CQTParams:
@@ -167,11 +177,8 @@ class FeatureExtractor:
         operation """
         y_mel = librosa.feature.melspectrogram(
             y=y, sr=self.feature_params.sr,
-            n_fft=self.feature_params.n_fft,
-            win_length=self.feature_params.win_length,
-            hop_length=self.feature_params.hop_length,
-            n_mels=self.feature_params.n_mels,
-            power=self.feature_params.power)
+            **self.feature_params.feature.param.to_dict()
+        )
 
         # clip values lower than 1e-7 and log-scaling
         # if all values are below 1e-7, data is not appropriate for training
