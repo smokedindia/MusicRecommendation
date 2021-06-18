@@ -177,7 +177,7 @@ class FeatureExtractor:
         operation """
         y_mel = librosa.feature.melspectrogram(
             y=y, sr=self.feature_params.sr,
-            **self.feature_params.feature.param.to_dict()
+            **self.feature_params.feature_param.to_dict()
         )
 
         # clip values lower than 1e-7 and log-scaling
