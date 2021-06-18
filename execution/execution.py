@@ -90,5 +90,5 @@ def get_prediction(user_input: str,
         preds_batch = model(batch).cpu().view(-1).detach().numpy().max()
         np.concatenate((predictions, preds_batch), axis=0)
 
-    prediction = stats.mode(predictions)[0].max()
+    prediction = stats.mode(predictions)[0][0]
     return prediction

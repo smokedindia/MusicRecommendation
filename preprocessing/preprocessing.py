@@ -13,8 +13,8 @@ from sklearn import preprocessing
 
 @dataclass
 class FeatureParams:
-    def __init__(self, feature_config, **_extras):
-        super(FeatureParams, self).__init__(**_extras)
+    def __init__(self, feature_config):
+        super(FeatureParams, self).__init__()
         self.feature_type = feature_config["feature_type"]
         self.save_root = feature_config['save_root']
         self.sr = feature_config['sr']

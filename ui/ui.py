@@ -158,7 +158,7 @@ class TrimWidget(QWidget):
         m = total_sec % 60
         total_sec = total_sec // 60
         h = total_sec
-        return (h, m, s)
+        return h, m, s
 
     def setTrimTimeLabel(self):
         (start, end) = self.trimSlider.getRange()
@@ -234,7 +234,7 @@ class TrimWidget(QWidget):
 
     def getTrimPointsHms(self):
         (start, end) = self.trimSlider.getRange()
-        return (self.pos_to_hms(1000 * start), self.pos_to_hms(1000 * end))
+        return self.pos_to_hms(1000 * start), self.pos_to_hms(1000 * end)
 
 
 class Login(QDialog):
