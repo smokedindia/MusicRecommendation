@@ -135,5 +135,7 @@ def run_test(config_list: Configs,
         plt.xlabel('labels')
         plt.ylabel('predictions')
 
+        plt.imshow(confusion_matrix)
+
         plt.savefig('models/16.1.5/confusion_matrix')
     return 1
