@@ -131,6 +131,9 @@ def run_test(config_list: Configs,
                     if point == i:
                         confusion_matrix[GENRES[label]][i] += 1
             confusion_matrix[GENRES[label]] /= len(preds)
-        plt.imshow(confusion_matrix)
+        plt.title('confusion matrix for music recommendation model')
+        plt.xlabel('labels')
+        plt.ylabel('predictions')
+
         plt.savefig('models/16.1.5/confusion_matrix')
     return 1
