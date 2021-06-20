@@ -125,7 +125,6 @@ def run_test(config_list: Configs,
         for (data, label) in audio_list:
             preds = model(data)
             preds = torch.max(torch.round(preds), 1)[1]
-            print(preds, GENRES[label])
             for i in range(10):
                 for point in preds:
                     if point == i:
