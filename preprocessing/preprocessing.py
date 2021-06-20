@@ -22,8 +22,10 @@ class FeatureParams:
         self.feature_param = None
         if self.feature_type == 'mel':
             self.feature_param = MelParams(feature_config['n_fft'],
-                                           feature_config.get('win_length', None),
-                                           feature_config.get('hop_length', None),
+                                           feature_config.get('win_length',
+                                                              None),
+                                           feature_config.get('hop_length',
+                                                              None),
                                            feature_config['n_mels'],
                                            feature_config.get('power', 2.0))
         elif self.feature_type == 'cqt':
@@ -36,17 +38,20 @@ class FeatureParams:
                                             feature_config['n_fft'])
         else:
             raise ValueError('Invalid feature called')
+
+
 @dataclass
 class MelParams:
     n_fft: int
     win_length: int
     hop_length: int
     n_mels: int
-    power : int
+    power: int
 
     def to_dict(self):
         dict_attr = asdict(self)
         return dict_attr
+
 
 @dataclass
 class CQTParams:
@@ -74,8 +79,7 @@ class STFTParams:
 
 class FeatureExtractor:
     def __init__(self, config_list, metadata_file='metadata.json',
-                 raw_meta=None, user_input=False):
-                 #raw_meta=None, test=False):
+                 raw_meta=None, user_input=False, test=False):
 
         self.data_root = 'dataset_raw/version_%s' % \
                          config_list.dataset_config['version']
@@ -88,7 +92,6 @@ class FeatureExtractor:
         self.metadata_file = metadata_file
 
         self.user_input = user_input
-
 
         self.test = test
         if not self.test and not self.user_input:

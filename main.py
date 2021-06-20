@@ -4,7 +4,6 @@ import os
 
 from dataclasses import dataclass
 
-
 DATASET_CONFIG_FILE = 'dataset_config.json'
 TRAIN_CONFIG_FILE = 'train_config.json'
 FEATURE_CONFIG_FILE = 'feature_config.json'
@@ -86,14 +85,13 @@ def train(config_list, feature_meta=None, save_model=False):
     trainer.fit()
 
 
-
 def execute(config_list):
     call_api(config_list)
+
 
 def test(config_list):
     from test import run_test
     run_test(config_list, hop_size=2.5)
-
 
 
 def parse_ver(version_raw):
