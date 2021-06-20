@@ -13,19 +13,19 @@ from sklearn import preprocessing
 
 @dataclass
 class FeatureParams:
-    def __init__(self, feature_config, **_extras):
-        super(FeatureParams, self).__init__(**_extras)
+    def __init__(self, feature_config):
+        super(FeatureParams, self).__init__()
         self.feature_type = feature_config["feature_type"]
         self.save_root = feature_config['save_root']
         self.sr = feature_config['sr']
 
         self.feature_param = None
         if self.feature_type == 'mel':
-            self.n_fft = feature_config['n_fft']
-            self.win_length = feature_config.get('win_length', None)
-            self.hop_length = feature_config.get('hop_length', None)
-            self.n_mels = feature_config['n_mels']
-            self.power = feature_config.get('power', 2.0)
+            self.feature_param = MelParams(feature_config['n_fft'],
+                                           feature_config.get('win_length', None),
+                                           feature_config.get('hop_length', None),
+                                           feature_config['n_mels'],
+                                           feature_config.get('power', 2.0))
         elif self.feature_type == 'cqt':
             self.feature_param = CQTParams(feature_config['hop_length'],
                                            feature_config['n_bins'],
@@ -36,7 +36,17 @@ class FeatureParams:
                                             feature_config['n_fft'])
         else:
             raise ValueError('Invalid feature called')
+@dataclass
+class MelParams:
+    n_fft: int
+    win_length: int
+    hop_length: int
+    n_mels: int
+    power : int
 
+    def to_dict(self):
+        dict_attr = asdict(self)
+        return dict_attr
 
 @dataclass
 class CQTParams:
@@ -51,6 +61,7 @@ class CQTParams:
         del dict_attr['fmin_note']
         return dict_attr
 
+
 @dataclass
 class STFTParams:
     hop_length: int
@@ -63,7 +74,9 @@ class STFTParams:
 
 class FeatureExtractor:
     def __init__(self, config_list, metadata_file='metadata.json',
+                 raw_meta=None, user_input=False):
                  raw_meta=None, test=False):
+
         self.data_root = 'dataset_raw/version_%s' % \
                          config_list.dataset_config['version']
         self.feature_params = FeatureParams(config_list.feature_config)
@@ -73,8 +86,13 @@ class FeatureExtractor:
                                          'version_%s' % version)
         # options = {'mel': self.logmelspec}
         self.metadata_file = metadata_file
+
+        self.user_input = user_input
+
+
         self.test = test
-        if not self.test:
+        if not self.test and not self.user_input:
+
             if raw_meta is not None:
                 self.audio_meta = raw_meta
                 self.feature_meta = {}
@@ -166,11 +184,8 @@ class FeatureExtractor:
         operation """
         y_mel = librosa.feature.melspectrogram(
             y=y, sr=self.feature_params.sr,
-            n_fft=self.feature_params.n_fft,
-            win_length=self.feature_params.win_length,
-            hop_length=self.feature_params.hop_length,
-            n_mels=self.feature_params.n_mels,
-            power=self.feature_params.power)
+            **self.feature_params.feature_param.to_dict()
+        )
 
         # clip values lower than 1e-7 and log-scaling
         # if all values are below 1e-7, data is not appropriate for training

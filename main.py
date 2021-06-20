@@ -1,9 +1,9 @@
 import argparse
 import json
 import os
-import sys
 
 from dataclasses import dataclass
+
 
 DATASET_CONFIG_FILE = 'dataset_config.json'
 TRAIN_CONFIG_FILE = 'train_config.json'
@@ -17,7 +17,7 @@ GENRES = {'blues': 0, 'classical': 1, 'country': 2,
           'pop': 7, 'reggae': 8, 'rock': 9}
 
 
-@dataclass()
+@dataclass
 class Configs:
     def __init__(self, config_root, versions):
         self.dataset_config = load_config(
@@ -86,9 +86,14 @@ def train(config_list, feature_meta=None, save_model=False):
     trainer.fit()
 
 
+
+def execute(config_list):
+    call_api(config_list)
+
 def test(config_list):
     from test import run_test
     run_test(config_list, hop_size=2.5)
+
 
 
 def parse_ver(version_raw):
@@ -113,7 +118,8 @@ def parse_ver(version_raw):
     return version_list
 
 
-def call_api():
+def call_api(config_list: Configs):
+    from execution import get_prediction
     """
     specifies calls to API.
 
@@ -122,9 +128,8 @@ def call_api():
     
 
     """
-    from ui import UI, qrangeslider
+    from ui import UI
     import threading
-    import time
     l = threading.Lock()
     global api
     global audio_name
@@ -152,7 +157,7 @@ def call_api():
             I know, not the best isolation, but could not
             find a better solution for asynchronous problem
             """
-            # prediction = model.do_predict(name)
+            prediction = get_prediction(audio_name, config_list=config_list)
 
             api.setPrediction(prediction)
 
@@ -169,9 +174,9 @@ def main():
     p.add_argument('-m', '--mode', type=str,
                    choices=['train', 'data', 'feature', 'test',
                             'all', 'exec'],
-                   default='all')
+                   default='exec')
     # default version structure: dataset_version.feature_version.train_version
-    p.add_argument('-v', '--version', type=str)
+    p.add_argument('-v', '--version', type=str, default='16.1.5.0')
 
     p.add_argument('--config_root', type=str, default='./assets')
     p.add_argument('-n', '--norm', type=bool, default=False)
@@ -187,8 +192,13 @@ def main():
         extract_feature(config_list)
     elif args.mode == 'train':
         train(config_list)
+
+    elif args.mode == 'exec':
+        execute(config_list)
+
     elif args.mode == 'test':
         test(config_list)
+
     else:  # if args.mode == 'all'
         raw_meta = create_data(config_list, args.save)
         feature_meta = extract_feature(config_list, raw_meta)
