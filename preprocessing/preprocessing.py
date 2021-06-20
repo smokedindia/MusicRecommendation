@@ -75,7 +75,7 @@ class STFTParams:
 class FeatureExtractor:
     def __init__(self, config_list, metadata_file='metadata.json',
                  raw_meta=None, user_input=False):
-                 raw_meta=None, test=False):
+                 #raw_meta=None, test=False):
 
         self.data_root = 'dataset_raw/version_%s' % \
                          config_list.dataset_config['version']
