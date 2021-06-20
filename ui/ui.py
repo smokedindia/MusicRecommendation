@@ -295,7 +295,11 @@ class OutWidget(QWidget):
         self.outs.setText(self.loadText)
         self.outs.show()
         sys.path.append("./chromedriver")
-        browser = webdriver.Chrome()
+
+        options = webdriver.ChromeOptions()
+        options.add_experimental_option("excludeSwitches", ["enable-logging"])
+
+        browser = webdriver.Chrome(options=options)
         # browser.minimize_window()
         browser.get("https://youtube.com/audiolibrary")
         time.sleep(2)
