@@ -24,7 +24,7 @@ def audio_to_tensors(user_input: np.ndarray,
 
     """
     # initialize required parameters from config file
-    extractor = FeatureExtractor(config_list=config_list)
+    extractor = FeatureExtractor(config_list=config_list, user_input=True)
     time_res = int(extractor.feature_params.sr /
                    extractor.feature_params.feature_param.hop_length)
     feature_size = int(config_list.dataset_config['feature_size'] * time_res)
