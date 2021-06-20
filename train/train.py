@@ -40,6 +40,10 @@ class Trainer:
         self.feature_meta = feature_meta
         self.save_model = save_model
 
+        self.genres = {0: 'blues', 1: 'classical', 2: 'country',
+                       3: 'disco', 4: 'hiphop', 5: 'jazz', 6: 'metal',
+                       7: 'pop', 8: 'reggae', 9: 'rock'}
+
     def create_loaders(self):
         """
 
@@ -59,14 +63,22 @@ class Trainer:
             dataset=dataset,
             lengths=[round(.8 * len(dataset)),
                      round(.2 * len(dataset))], )
+        val_dataset, test_dataset = torch.utils.data.random_split(
+            dataset=rest_dataset,
+            lengths=[round(len(rest_dataset) * .5),
+                     len(rest_dataset) - round(len(rest_dataset) * .5)]
+        )
         train_loader = DataLoader(dataset=train_dataset,
                                   batch_size=self.batch_size,
                                   shuffle=True,
                                   num_workers=4)
-        val_loader = DataLoader(dataset=rest_dataset,
+        val_loader = DataLoader(dataset=val_dataset,
                                 batch_size=self.batch_size,
                                 shuffle=False)
-        return train_loader, val_loader
+        test_loader = DataLoader(dataset=test_dataset,
+                                 batch_size=self.batch_size,
+                                 shuffle=False)
+        return train_loader, val_loader, test_loader
 
     def fit(self):
         """
@@ -87,7 +99,7 @@ class Trainer:
             shutil.rmtree(writer_path)
         writer = SummaryWriter(writer_path)
 
-        train_loader, val_loader = self.create_loaders()
+        train_loader, val_loader, test_loader = self.create_loaders()
         dataloaders = {'train': train_loader, 'val': val_loader}
 
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -193,3 +205,41 @@ class Trainer:
             os.makedirs(save_root)
             torch.save(model.state_dict(),
                        os.path.join(save_root, 'model.ckpt'))
+
+        # 1. gets the probability predictions in a test_size x num_classes
+        # Tensor 2. gets the preds in a test_size Tensor takes ~10 seconds
+        # to run
+        # class_probs = []
+        # class_label = []
+        # with torch.no_grad():
+        #     for batch in test_loader:
+        #         spectrogram = batch.get('spectrogram').to(device)
+        #         labels = batch.get('label').to(device)
+        #         output = model(spectrogram)
+        #         class_probs_batch = [nn.Softmax(el) for el in output]
+        #
+        #         class_probs.append(class_probs_batch)
+        #         class_label.append(labels)
+        #
+        # test_probs = torch.cat([torch.stack(batch) for batch in class_probs])
+        # test_label = torch.cat(class_label)
+        #
+        # # helper function
+        # def add_pr_curve_tensorboard(class_index, test_probs, test_label,
+        #                              global_step=0):
+        #     """
+        #     Takes in a "class_index" from 0 to 9 and plots the corresponding
+        #     precision-recall curve
+        #     """
+        #     tensorboard_truth = test_label == class_index
+        #     tensorboard_probs = test_probs[:, class_index]
+        #
+        #     writer.add_pr_curve(self.genres[class_index],
+        #                         tensorboard_truth,
+        #                         tensorboard_probs,
+        #                         global_step=global_step)
+        #     writer.close()
+        #
+        # # plot all the pr curves
+        # for i in range(len(self.genres)):
+        #     add_pr_curve_tensorboard(i, test_probs, test_label)

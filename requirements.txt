@@ -26,6 +26,7 @@ ipython==5.5.0
 ipython-genutils==0.2.0
 ipywidgets==7.6.3
 Jinja2==3.0.1
+
 joblib==1.0.1
 jsonschema==3.2.0
 jupyter==1.0.0
@@ -67,6 +68,7 @@ pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycparser==2.20
 Pygments==2.9.0
+pyOpenSSL @ file:///home/conda/feedstock_root/build_artifacts/pyopenssl_1608055815057/work
 pyparsing==2.4.7
 pyrsistent==0.17.3
 PySide2==5.15.2
